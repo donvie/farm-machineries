@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Maintainance;
+use App\Models\Rental;
 
 class Machinery extends Model
 {
@@ -22,5 +23,10 @@ class Machinery extends Model
     public function maintainances()
     {
         return $this->hasMany(Maintainance::class, 'machinery_id', 'id'); // ✅ Define Relationship
+    }
+    
+
+    public function rentals() {
+        return $this->hasMany(Rental::class, 'machinery_id', 'id');
     }
 }

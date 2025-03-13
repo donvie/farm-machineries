@@ -11,13 +11,24 @@ class MachineryController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // public function index()
+    // {
+    //     // $machineries = Machinery::paginate(10); // Paginated data
+    //     // $machineries = Machinery::all(); // Load all data
+    //     $machineries = Machinery::with('maintainances.user')->get();
+    //     return Inertia::render('Machinery', ['machineries' => ['data' => $machineries]]);
+    // }
+
     public function index()
     {
-        // $machineries = Machinery::paginate(10); // Paginated data
-        // $machineries = Machinery::all(); // Load all data
-        $machineries = Machinery::with('maintainances.user')->get();
-        return Inertia::render('Machinery', ['machineries' => ['data' => $machineries]]);
-    }
+        $machineries = Machinery::with(['maintainances.user', 'rentals.user', 'rentals.machinery'])->get();
+    
+        return Inertia::render('Machinery', [
+            'machineries' => [
+                'data' => $machineries
+            ]
+        ]);
+    }    
 
     /**
      * Store a newly created resource in storage.

@@ -1,7 +1,12 @@
 <script setup>
 import { ref, computed } from "vue";
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+
+// pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const props = defineProps({
+  title: String,
   headers: Array,
   filterData: Array,
   data: Array,
@@ -10,24 +15,49 @@ const props = defineProps({
   isHasEditBtn: Boolean,
   isHasViewBtn: Boolean,
   isHasDownloadQrCodeBtn: Boolean,
-  noActions: Boolean
+  isHasNotifySMSBtn: Boolean,
+  noActions: Boolean,
 });
 
-const emit = defineEmits(["viewEdit", "editItem", "deleteItem", "viewItem", "downloadQrCode"]);
+const emit = defineEmits([
+  "viewEdit",
+  "editItem",
+  "deleteItem",
+  "viewItem",
+  "downloadQrCode",
+  "notifySMS",
+]);
 
 const rowsPerPage = props.perPage;
 const currentPage = ref(1);
-const searchQuery = ref(""); // Search input value
+const searchQuery = ref("");
+const startDate = ref(null);
+const endDate = ref(null);
 
-// Compute total rows based on filtered filterData
 const filteredData = computed(() => {
-  if (!searchQuery.value) return props.filterData;
-  
-  return props.filterData.filter(row =>
-    Object.values(row).some(value =>
-      String(value).toLowerCase().includes(searchQuery.value.toLowerCase())
-    )
-  );
+  let filtered = props.filterData;
+  console.log('filteredfiltered', filtered)
+
+  if (startDate.value && endDate.value) {
+    filtered = filtered.filter((row) => {
+      const createdAt = new Date(row.created_at);
+      const start = new Date(startDate.value);
+      const end = new Date(endDate.value);
+      end.setDate(end.getDate() + 1); // Include the entire end date
+
+      return createdAt >= start && createdAt < end;
+    });
+  }
+
+  if (searchQuery.value) {
+    filtered = filtered.filter((row) =>
+      Object.values(row).some((value) =>
+        String(value).toLowerCase().includes(searchQuery.value.toLowerCase())
+      )
+    );
+  }
+
+  return filtered;
 });
 
 const totalRows = computed(() => filteredData.value.length);
@@ -41,7 +71,9 @@ const paginatedData = computed(() => {
 const showingRange = computed(() => {
   const start = (currentPage.value - 1) * rowsPerPage + 1;
   const end = Math.min(start + rowsPerPage - 1, totalRows.value);
-  return totalRows.value > 0 ? `${start}-${end} of ${totalRows.value}` : "No results found";
+  return totalRows.value > 0
+    ? `${start}-${end} of ${totalRows.value}`
+    : "No results found";
 });
 
 const goToPage = (page) => {
@@ -51,7 +83,7 @@ const goToPage = (page) => {
 };
 
 const ViewItem = (item) => {
-  const index = props.data.findIndex(data => data.id === item.id)
+  const index = props.data.findIndex((data) => data.id === item.id);
   emit("viewItem", props.data[index]);
 };
 
@@ -66,20 +98,110 @@ const deleteItem = (itemId) => {
 };
 
 const downloadQrCode = (itemId) => {
-    emit("downloadQrCode", itemId);
+  emit("downloadQrCode", itemId);
+};
+
+const notifySMS = (item) => {
+  emit("notifySMS", item);
+};
+
+const downloadPDF = () => {
+  const tableBody = [];
+  tableBody.push(props.headers);
+
+  const processedData = filteredData.value.map(row => {
+    const newRow = {...row};
+    // Example: Add soft hyphens to long strings
+    Object.keys(newRow).forEach(key => {
+      if (typeof newRow[key] === 'string' && newRow[key].length > 30) {
+        newRow[key] = newRow[key].replace(/([^\s-]{10})/g, '$1\u00AD');
+      }
+    });
+
+    return Object.values(newRow);
+  });
+
+  processedData.forEach(rowData => {
+    tableBody.push(rowData);
+  });
+
+  const columnWidth = `${100 / props.headers.length}%`; // Calculate column width
+
+  const docDefinition = {
+    pageSize: 'A4',
+    pageOrientation: 'landscape',
+    content: [
+      { text: props.title, style: 'header' },
+      {
+        table: {
+          widths: props.headers.map(() => columnWidth), // Force even column widths
+          body: tableBody,
+          layout: {
+            hLineWidth: function (i, node) {
+              return 0.5;
+            },
+            vLineWidth: function (i, node) {
+              return 0.5;
+            },
+            hLineColor: function (i, node) {
+              return '#aaa';
+            },
+            vLineColor: function (i, node) {
+              return '#aaa';
+            },
+            paddingLeft: function (i, node) {
+              return 1;
+            },
+            paddingRight: function (i, node) {
+              return 1;
+            },
+            paddingTop: function (i, node) {
+              return 1;
+            },
+            paddingBottom: function (i, node) {
+              return 1;
+            },
+          },
+        },
+        style: {
+          fontSize: 11,
+          lineHeight: 0.8,
+        },
+      },
+    ],
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+        margin: [0, 0, 0, 10],
+      },
+    },
+  };
+
+  pdfMake.createPdf(docDefinition).download(`${props.title}.pdf`);
 };
 </script>
 
 <template>
   <div class="overflow-x-auto rounded-md border border-gray-200">
-    <!-- Search Input -->
-    <div class="p-4">
-      <input 
-        v-model="searchQuery" 
-        type="text" 
-        placeholder="Search..." 
+    <div class="p-4 flex flex-wrap gap-2">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search..."
         class="px-3 py-2 border rounded"
       />
+      <input
+        v-model="startDate"
+        type="date"
+        class="px-3 py-2 border rounded"
+      />
+      <input
+        v-model="endDate"
+        type="date"
+        class="px-3 py-2 border rounded"
+      />
+      <button @click="downloadPDF" class="px-4 py-2 bg-blue-500 text-white rounded">Download PDF</button>
     </div>
 
     <table class="w-full text-left text-sm">
@@ -97,6 +219,7 @@ const downloadQrCode = (itemId) => {
             {{ value }}
           </td>
           <td class="px-4 py-2 flex gap-2">
+            <button v-if="props.isHasNotifySMSBtn" @click="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
             <button v-if="props.isHasDownloadQrCodeBtn" @click="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
             <button v-if="props.isHasEditBtn" @click="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
             <button v-if="props.isHasDeleteBtn" @click="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
@@ -104,20 +227,19 @@ const downloadQrCode = (itemId) => {
           </td>
         </tr>
       </tbody>
-    </table>
+      </table>
+      <div class="flex justify-between items-center p-4">
+        <span class="text-sm">{{ showingRange }}</span>
 
-    <div class="flex justify-between items-center p-4">
-      <span class="text-sm">{{ showingRange }}</span>
-
-      <div class="flex gap-2">
-        <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 border rounded disabled:opacity-50">
-          Prev
-        </button>
-        <span class="mt-1">Page {{ currentPage }} of {{ totalPages }}</span>
-        <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-1 border rounded disabled:opacity-50">
-          Next
-        </button>
+        <div class="flex gap-2">
+          <button @click="goToPage(currentPage - 1)" :disabled="currentPage === 1" class="px-3 py-1 border rounded disabled:opacity-50">
+            Prev
+          </button>
+          <span class="mt-1">Page {{ currentPage }} of {{ totalPages }}</span>
+          <button @click="goToPage(currentPage + 1)" :disabled="currentPage === totalPages" class="px-3 py-1 border rounded disabled:opacity-50">
+            Next
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 </template>

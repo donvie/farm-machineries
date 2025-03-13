@@ -20,14 +20,16 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
+import { format, parseISO } from 'date-fns';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Machinery', href: '/machinery' }];
 
 const isDialogOpen = ref(false);
-const isDialogViewOpen = ref(false);
 const isDialogScannerOpen = ref(false);
 const selectedItem = ref({});
+const isDialogViewOpen = ref(false);
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
+const headersViewRental = ['Id', 'Name', 'Machine Name', 'Created At'];
 
 const props = defineProps<{
     name?: string;
@@ -39,6 +41,7 @@ const props = defineProps<{
             status: string;
             year_acquired: string;
             maintainances: any;
+            rentals: any;
         }>;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
@@ -46,7 +49,7 @@ const props = defineProps<{
 
 console.log('propsprops', props);
 
-const headers = ['Id', 'Machine Name', 'Type', 'Status', 'Year Acquired', 'Last Maintainance Date', 'Next Scheduled Maintainance'];
+const headers = ['Id', 'Machine Name', 'Type', 'Status', 'Year Acquired', 'Last Maintainance Date', 'Next Scheduled Maintainance', 'Created At'];
 let form = useForm({
     machine_name: '',
     type: '',
@@ -65,6 +68,15 @@ const onScan = () => {
     setTimeout(() => {
         onQrCode();
     }, 500);
+};
+
+const formattedDate = (dateString: any, formatString: any) => {
+    try {
+        const date = parseISO(dateString);
+        return format(date, formatString);
+    } catch (error) {
+        return 'Invalid Date';
+    }
 };
 
 const onQrCode = () => {
@@ -245,11 +257,11 @@ const handleDownloadQrCode = async (id: any) => {
                     <!-- <DialogTrigger as-child>
                         <Button>View Machinery</Button>
                     </DialogTrigger> -->
-                    <DialogContent>
+                    <DialogContent class="h-screen max-h-screen w-screen max-w-none overflow-y-auto">
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>View Machinery</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription>
+                                <DialogTitle class="mb-10">View Machinery</DialogTitle>
+                                <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
 
                             <div class="grid gap-4">
@@ -290,6 +302,7 @@ const handleDownloadQrCode = async (id: any) => {
                                     placeholder="Enter Next Scheduled Maintenance"
                                 />
                             </div>
+                            <DialogTitle class="py-10">List of Maintainances</DialogTitle>
 
                             <Table
                                 :headers="headersView"
@@ -300,6 +313,23 @@ const handleDownloadQrCode = async (id: any) => {
                                         name: maintainance.user?.name,
                                         status: maintainance?.status,
                                         remarks: maintainance?.remarks,
+                                    }))
+                                "
+                                :noActions="true"
+                                :perPage="10"
+                            />
+
+                            <DialogTitle class="py-10">List of Rentals</DialogTitle>
+                            <Table
+                                title="Rental"
+                                :headers="headersViewRental"
+                                :data="selectedItem?.rentals"
+                                :filterData="
+                                    selectedItem?.rentals?.map((rental) => ({
+                                        id: rental.id,
+                                        name: rental.user?.name,
+                                        machine_name: rental?.machinery?.machine_name,
+                                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
                                     }))
                                 "
                                 :noActions="true"
@@ -319,11 +349,12 @@ const handleDownloadQrCode = async (id: any) => {
                 </Dialog>
             </div>
             <Table
+                title="Machinery"
                 :headers="headers"
                 :data="props?.machineries?.data"
                 :filterData="
                     props?.machineries?.data.map(
-                        ({ id, machine_name, type, status, year_acquired, last_maintenance_date, next_scheduled_maintenance, maintainances }) => ({
+                        ({
                             id,
                             machine_name,
                             type,
@@ -331,6 +362,17 @@ const handleDownloadQrCode = async (id: any) => {
                             year_acquired,
                             last_maintenance_date,
                             next_scheduled_maintenance,
+                            maintainances,
+                            created_at,
+                        }) => ({
+                            id,
+                            machine_name,
+                            type,
+                            status,
+                            year_acquired,
+                            last_maintenance_date,
+                            next_scheduled_maintenance,
+                            created_at: formattedDate(created_at, 'yyyy-MM-dd'),
                         }),
                     )
                 "

@@ -116,29 +116,22 @@ import { Head, Link } from '@inertiajs/vue3';
                 <div
                     class="relative -mb-px aspect-[335/376] w-full shrink-0 overflow-hidden rounded-t-lg bg-[#fff2f2] dark:bg-[#1D0002] lg:-ml-px lg:mb-0 lg:aspect-auto lg:w-[438px] lg:rounded-r-lg lg:rounded-t-none"
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-                        <!-- Background Circle -->
+                    <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
                         <circle cx="50" cy="50" r="45" stroke="green" stroke-width="4" fill="lightgreen" />
 
-                        <!-- Tractor Body -->
                         <rect x="30" y="40" width="30" height="20" fill="darkgreen" />
                         <circle cx="35" cy="65" r="8" fill="black" />
                         <circle cx="55" cy="65" r="10" fill="black" />
                         <rect x="40" y="30" width="10" height="10" fill="darkgreen" />
 
-                        <!-- Gear -->
                         <circle cx="70" cy="30" r="10" fill="gold" />
                         <path d="M 65 30 L 75 30 M 70 25 L 70 35" stroke="black" stroke-width="2" />
+                    </svg> -->
 
-                        <!-- Text -->
-                        <!-- <text x="50" y="85" font-size="4" text-anchor="middle" fill="darkgreen" font-weight="bold">
-                            FARM MACHINERIES MANAGEMENT SYSTEM
-                        </text> -->
-                        <!-- <text x="50" y="95" font-size="6" text-anchor="middle" fill="black">CATUGUING</text> -->
-                    </svg>
-
-                    <div
-                        class="absolute inset-0 rounded-t-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:overflow-hidden lg:rounded-r-lg lg:rounded-t-none"
+                    <img
+                        src="/images/image.png"
+                        alt="Welcome Image"
+                        class="absolute inset-0 h-full w-full rounded-t-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-r-lg lg:rounded-t-none"
                     />
                 </div>
             </main>

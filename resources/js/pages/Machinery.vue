@@ -7,16 +7,7 @@ import QRCode from 'qrcode';
 import { ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
@@ -28,8 +19,9 @@ const isDialogOpen = ref(false);
 const isDialogScannerOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
+const action = ref('');
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
-const headersViewRental = ['Id', 'Name', 'Machine Name', 'Created At'];
+const headersViewRental = ['Id', 'Name', 'Machine Name'];
 
 const props = defineProps<{
     name?: string;
@@ -49,7 +41,7 @@ const props = defineProps<{
 
 console.log('propsprops', props);
 
-const headers = ['Id', 'Machine Name', 'Type', 'Status', 'Year Acquired', 'Last Maintainance Date', 'Next Scheduled Maintainance', 'Created At'];
+const headers = ['Id', 'Machine Name', 'Type', 'Status', 'Year Acquired'];
 let form = useForm({
     machine_name: '',
     type: '',
@@ -147,6 +139,7 @@ const handleView = (item: any) => {
 };
 
 const handleEdit = (item: any) => {
+    action.value = 'edit';
     isDialogOpen.value = true;
     Object.keys(item).forEach((key) => {
         form[key] = item[key] ?? '';
@@ -193,13 +186,13 @@ const handleDownloadQrCode = async (id: any) => {
                 <Button @click="onScan()" class="mr-2">QR code scanner</Button>
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button>Add Machinery</Button>
+                        <Button @click="action = 'add'">Add Machinery</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>Add New Machinery</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Machinery' : 'Edit Machinery' }}</DialogTitle>
+                                <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
 
                             <div class="grid gap-4">
@@ -214,31 +207,32 @@ const handleDownloadQrCode = async (id: any) => {
 
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
+                                    <option disabled value="Available">Available</option>
+                                    <option disabled value="In Use">In Use</option>
+                                    <option disabled value="Under Maintenance">Under Maintenance</option>
+                                    <option value="Under Maintenance">Deactivate</option>
                                 </select>
 
                                 <Label for="year_acquired">Year Acquired</Label>
                                 <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
 
-                                <Label for="last_maintenance_date">Last Maintenance Date</Label>
+                                <!-- <Label for="last_maintenance_date">Last Maintenance Date</Label>
                                 <Input
                                     required
                                     type="date"
                                     id="last_maintenance_date"
                                     v-model="form.last_maintenance_date"
                                     placeholder="Enter Last Maintenance Date"
-                                />
+                                /> -->
 
-                                <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
+                                <!-- <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
                                 <Input
                                     required
                                     type="date"
                                     id="next_scheduled_maintenance"
                                     v-model="form.next_scheduled_maintenance"
                                     placeholder="Enter Next Scheduled Maintenance"
-                                />
+                                /> -->
                             </div>
 
                             <DialogFooter class="mt-4 gap-2">
@@ -269,38 +263,17 @@ const handleDownloadQrCode = async (id: any) => {
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
                                 <Label for="machine_name">Machine Name</Label>
-                                <Input required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
+                                <Input readonly required id="machine_name" v-model="selectedItem.machine_name" placeholder="Enter machine name" />
 
                                 <Label for="type">Type</Label>
-                                <Input required id="type" v-model="form.type" placeholder="Enter machine type" />
+                                <Input readonly required id="type" v-model="selectedItem.type" placeholder="Enter machine type" />
 
                                 <Label for="status">Status</Label>
-                                <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                <select disabled id="status" v-model="selectedItem.status" class="w-full rounded border px-3 py-2">
                                     <option value="Available">Available</option>
                                     <option value="In Use">In Use</option>
                                     <option value="Under Maintenance">Under Maintenance</option>
                                 </select>
-
-                                <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
-
-                                <Label for="last_maintenance_date">Last Maintenance Date</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="last_maintenance_date"
-                                    v-model="form.last_maintenance_date"
-                                    placeholder="Enter Last Maintenance Date"
-                                />
-
-                                <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="next_scheduled_maintenance"
-                                    v-model="form.next_scheduled_maintenance"
-                                    placeholder="Enter Next Scheduled Maintenance"
-                                />
                             </div>
                             <DialogTitle class="py-10">List of Maintainances</DialogTitle>
 
@@ -353,28 +326,13 @@ const handleDownloadQrCode = async (id: any) => {
                 :headers="headers"
                 :data="props?.machineries?.data"
                 :filterData="
-                    props?.machineries?.data.map(
-                        ({
-                            id,
-                            machine_name,
-                            type,
-                            status,
-                            year_acquired,
-                            last_maintenance_date,
-                            next_scheduled_maintenance,
-                            maintainances,
-                            created_at,
-                        }) => ({
-                            id,
-                            machine_name,
-                            type,
-                            status,
-                            year_acquired,
-                            last_maintenance_date,
-                            next_scheduled_maintenance,
-                            created_at: formattedDate(created_at, 'yyyy-MM-dd'),
-                        }),
-                    )
+                    props?.machineries?.data.map(({ id, machine_name, type, status, year_acquired, maintainances, created_at }) => ({
+                        id,
+                        machine_name,
+                        type,
+                        status,
+                        year_acquired,
+                    }))
                 "
                 :perPage="10"
                 @editItem="handleEdit"

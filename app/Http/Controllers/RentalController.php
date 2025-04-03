@@ -45,7 +45,7 @@ class RentalController extends Controller
             'user_id' => 'required|numeric',
             'machinery_id' => 'required|numeric',
             'status' => 'required|string',
-            'date_of_rent' => 'required|date',
+            // 'date_of_rent' => 'required|date',
             'remarks'  => 'required|string',
         ]);
 
@@ -67,13 +67,17 @@ class RentalController extends Controller
      */
     public function update(Request $request, Rental $rental)
     {
-        $rental->validate([
-            'name' => 'nullable|string',
+        $request->validate([
+            // 'user_id' => 'sometimes|required|numeric',
+            // 'machinery_id' => 'sometimes|required|numeric',
+            // 'status' => 'sometimes|required|string',
+            // 'remarks' => 'sometimes|required|string',
+            // Add other validation rules as needed for updating a rental
         ]);
-
-        $machinery->update($request->all());
-
-        return back()->with('success', 'Machinery updated successfully!');
+    
+        $rental->update($request->all());
+    
+        return back()->with('success', 'Rental updated successfully!');
     }
 
     /**

@@ -6,16 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
@@ -38,15 +29,16 @@ const props = defineProps<{
 }>();
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
+const action = ref('');
 
 console.log('dada', props);
 
-const headers = ['Id', 'Name', 'Purpose', 'Loan Date', 'Repayment Date', 'Remarks', 'Created At'];
+const headers = ['Id', 'Loaner', 'Repayment Date', 'Purpose', 'Created At'];
 const form = useForm({
     user_id: {},
     amount: 0,
     purpose: '',
-    status: '',
+    status: 'Ongoing',
     loanDate: null,
     repaymentDate: null,
     remarks: '',
@@ -82,6 +74,7 @@ const closeModal = () => {
 };
 
 const handleEdit = (item: any) => {
+    action.value = 'edit';
     isDialogOpen.value = true;
     Object.keys(item).forEach((key) => {
         form[key] = item[key] ?? '';
@@ -105,6 +98,9 @@ const handleDelete = (itemId: string) => {
 const handleView = (item: any) => {
     selectedItem.value = item;
     console.log('item', item);
+    Object.keys(item).forEach((key) => {
+        form[key] = item[key] ?? '';
+    });
     isDialogViewOpen.value = true;
 };
 
@@ -159,13 +155,13 @@ const handleNotifySMS = async (item) => {
             <div class="my-4">
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button>Add Loan</Button>
+                        <Button @click="action = 'add'">Add Loan</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="addLoan">
                             <DialogHeader class="space-y-3">
-                                <DialogTitle>Add New Loan</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new loan. </DialogDescription>
+                                <DialogTitle>{{ action === 'add ' ? 'Add New Loan' : 'Edit Loan' }}</DialogTitle>
+                                <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
 
                             <div class="mb-3">
@@ -182,34 +178,33 @@ const handleNotifySMS = async (item) => {
                                 <Input required type="number" id="amount" v-model="form.amount" placeholder="Enter Amount" />
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
+                                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
                             </div>
-
-                            <div class="mb-3">
-                                <Label for="remarks">Purpose</Label>
-                                <Input required id="purpose" v-model="form.purpose" placeholder="Enter Remarks" />
-                            </div>
-
-                            <div class="mb-3">
-                                <Label for="loanDate">Laon Date</Label>
-                                <Input required type="date" id="loanDate" v-model="form.loanDate" placeholder="Enter Rent Date" />
-                            </div>
-
                             <div class="mb-3">
                                 <Label for="loanDate">Repayment Date</Label>
                                 <Input required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repaymentDate" />
                             </div>
 
                             <div class="mb-3">
+                                <Label for="remarks">Purpose</Label>
+                                <Input required id="purpose" v-model="form.purpose" placeholder="Enter purpose" />
+                            </div>
+
+                            <!-- <div class="mb-3">
+                                <Label for="loanDate">Laon Date</Label>
+                                <Input required type="date" id="loanDate" v-model="form.loanDate" placeholder="Enter Rent Date" />
+                            </div> -->
+
+                            <!-- <div class="mb-3">
                                 <Label for="name">Remarks</Label>
                                 <Input required id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
-                            </div>
+                            </div> -->
 
                             <DialogFooter class="mt-4 gap-2">
                                 <DialogClose as-child>
@@ -230,39 +225,45 @@ const handleNotifySMS = async (item) => {
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>View Machinery</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription>
+                                <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
 
                             <div class="grid gap-4">
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
-                                <!-- <Label for="machine_name">Machine Name</Label>
-                                <Input required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
+                                <Label for="machine_name">Machine Name</Label>
+                                <Input readonly required id="machine_name" v-model="form.user.name" placeholder="Enter machine name" />
 
                                 <Label for="type">Type</Label>
-                                <Input required id="type" v-model="form.type" placeholder="Enter machine type" />
+                                <Input readonly required id="type" v-model="form.amount" placeholder="Enter machine type" />
+
+                                <Label for="type">Purpose</Label>
+                                <Input readonly required id="type" v-model="form.purpose" placeholder="Enter machine type" />
+
+                                <Label for="type">Repayment Date</Label>
+                                <Input readonly required id="type" v-model="form.repaymentDate" placeholder="Enter machine type" />
 
                                 <Label for="status">Status</Label>
-                                <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
+                                <select disabled id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
+                                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
 
-                                <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
+                                <!-- <Label for="year_acquired">Year Acquired</Label>
+                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" /> -->
 
-                                <Label for="last_maintenance_date">Last Maintenance Date</Label>
+                                <!-- <Label for="last_maintenance_date">Last Maintenance Date</Label>
                                 <Input
                                     required
                                     type="date"
                                     id="last_maintenance_date"
                                     v-model="form.last_maintenance_date"
                                     placeholder="Enter Last Maintenance Date"
-                                />
+                                /> -->
 
-                                <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
+                                <!-- <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
                                 <Input
                                     required
                                     type="date"
@@ -283,10 +284,8 @@ const handleNotifySMS = async (item) => {
                     props?.loans?.data.map((loan) => ({
                         id: loan.id,
                         name: loan.user?.name,
-                        purpose: loan.purpose,
-                        loanDate: loan.loanDate,
                         repaymentDate: loan.repaymentDate,
-                        remarks: loan.remarks,
+                        purpose: loan.purpose,
                         created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
                     }))
                 "

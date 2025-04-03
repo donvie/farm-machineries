@@ -30,13 +30,13 @@ class LoanController extends Controller
     {
         $request->validate([
             'user_id' => 'required|numeric',
-            'status' => 'required|string',
-            'remarks'  => 'required|string',
+            // 'status' => 'required|string',
+            // 'remarks'  => 'required|string',
             'amount' => 'required|numeric',
             'purpose' => 'required|string',
-            'loanDate' => 'required|date',
-            'repaymentDate' => 'required|date',
-            'remarks' => 'required|string',
+            // 'loanDate' => 'required|date',
+            // 'repaymentDate' => 'required|date',
+            // 'remarks' => 'required|string',
         ]);
 
         Loan::create($request->all());
@@ -58,7 +58,7 @@ class LoanController extends Controller
     public function update(Request $request, Loan $loan)
     {
         $request->validate([
-            'name' => 'required|string',
+            // 'name' => 'required|string',
         ]);
 
         $loan->update($request->all());

@@ -5,16 +5,7 @@ import { Head, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
@@ -41,12 +32,13 @@ const props = defineProps<{
 console.log('propspropsprops', props);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
+const action = ref('');
 
-const headers = ['Id', 'Name', 'Machine Name', 'Created At'];
+const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Remarks', 'Create At'];
 const form = useForm({
     user_id: null,
     machinery_id: null,
-    status: '',
+    status: 'Ongoing',
     remarks: '',
 });
 
@@ -61,15 +53,31 @@ const formattedDate = (dateString: any, formatString: any) => {
 const addMaintainance = (e: Event) => {
     e.preventDefault();
     console.log('Submitting form...');
+    console.log('form.machinery', form);
 
-    router.post(route('maintainance.store'), form, {
-        preserveScroll: true,
-        onSuccess: () => {
-            closeModal();
-        },
-        onError: (errors) => console.error('Form errors:', errors),
-        onFinish: () => closeModal(),
-    });
+    if (form.id) {
+        if (form.status === 'Completed') {
+            router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
+        }
+
+        router.patch(route('maintainance.update', form.id), form, {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+            onError: (errors) => console.error('Form errors:', errors),
+            onFinish: () => closeModal(),
+        });
+    } else {
+        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintainance' });
+
+        router.post(route('maintainance.store'), form, {
+            preserveScroll: true,
+            onSuccess: () => {
+                closeModal();
+            },
+            onError: (errors) => console.error('Form errors:', errors),
+            onFinish: () => closeModal(),
+        });
+    }
 };
 
 const closeModal = () => {
@@ -80,6 +88,18 @@ const closeModal = () => {
 
 const handleEdit = (item: any) => {
     console.log('Editing:', item);
+    selectedItem.value = item;
+    action.value = 'edit';
+    isDialogOpen.value = true;
+    Object.keys(item).forEach((key) => {
+        form[key] = item[key] ?? '';
+    });
+};
+
+const handleMarkAsAvailable = (item: any) => {
+    console.log('Editing:', item);
+    selectedItem.value = item;
+    action.value = 'edit';
     isDialogOpen.value = true;
     Object.keys(item).forEach((key) => {
         form[key] = item[key] ?? '';
@@ -90,6 +110,10 @@ const handleView = (item: any) => {
     selectedItem.value = item;
     console.log('item', item);
     isDialogViewOpen.value = true;
+    console.log('formform', form);
+    Object.keys(item).forEach((key) => {
+        form[key] = item[key] ?? '';
+    });
 };
 
 const handleDelete = (itemId: string) => {
@@ -115,13 +139,12 @@ const handleDelete = (itemId: string) => {
             <div class="my-4">
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button>Add Maintainance</Button>
+                        <Button @click="action = 'add'">Add Maintainance</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="addMaintainance">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>Add New Maintainance</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new maintainance. </DialogDescription>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Maintainance' }}</DialogTitle>
                             </DialogHeader>
                             <div class="mb-3">
                                 <Label for="user">Technician</Label>
@@ -143,18 +166,17 @@ const handleDelete = (itemId: string) => {
                                 </select>
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
+                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Completed">Completed</option>
                                 </select>
                             </div>
 
                             <div class="mb-3">
                                 <Label for="remarks">Remarks</Label>
-                                <Input required id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
+                                <Input id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
                             </div>
 
                             <DialogFooter class="mt-4 gap-2">
@@ -170,53 +192,29 @@ const handleDelete = (itemId: string) => {
                 </Dialog>
 
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
-                    <!-- <DialogTrigger as-child>
-                        <Button>View Machinery</Button>
-                    </DialogTrigger> -->
                     <DialogContent>
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>View Machinery</DialogTitle>
-                                <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription>
+                                <DialogTitle>View Maintainance</DialogTitle>
                             </DialogHeader>
 
                             <div class="grid gap-4">
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
+                                <Label for="name">Technician</Label>
+                                <Input readonly required id="name" v-model="form.user.name" placeholder="Enter machine name" />
 
-                                <!-- <Label for="machine_name">Machine Name</Label>
-                                <Input required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
+                                <Label for="machine_name">Machine Name</Label>
+                                <Input readonly required id="machine_name" v-model="form.machinery.machine_name" placeholder="Enter machine name" />
 
-                                <Label for="type">Type</Label>
-                                <Input required id="type" v-model="form.type" placeholder="Enter machine type" />
+                                <Label for="type">Machine Type</Label>
+                                <Input readonly required id="type" v-model="form.machinery.type" placeholder="Enter machine type" />
 
-                                <Label for="status">Status</Label>
-                                <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
-                                </select>
+                                <Label for="type">Status</Label>
+                                <Input readonly required id="type" v-model="form.status" placeholder="Enter machine type" />
 
-                                <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
-
-                                <Label for="last_maintenance_date">Last Maintenance Date</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="last_maintenance_date"
-                                    v-model="form.last_maintenance_date"
-                                    placeholder="Enter Last Maintenance Date"
-                                />
-
-                                <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="next_scheduled_maintenance"
-                                    v-model="form.next_scheduled_maintenance"
-                                    placeholder="Enter Next Scheduled Maintenance"
-                                /> -->
+                                <Label for="type">Remarks</Label>
+                                <Input readonly required id="type" v-model="form.remarks" placeholder="Enter machine type" />
                             </div>
                         </form>
                     </DialogContent>
@@ -231,6 +229,8 @@ const handleDelete = (itemId: string) => {
                         id: maintainance.id,
                         name: maintainance.user?.name,
                         maintainance: maintainance?.machinery?.machine_name,
+                        status: maintainance.status,
+                        remarks: maintainance.remarks,
                         created_at: formattedDate(maintainance.created_at, 'yyyy-MM-dd'),
                     }))
                 "
@@ -238,9 +238,11 @@ const handleDelete = (itemId: string) => {
                 @editItem="handleEdit"
                 @viewItem="handleView"
                 @deleteItem="handleDelete"
+                @markAsAvailableItem="handleMarkAsAvailable"
                 :isHasViewBtn="true"
-                :isHasDeleteBtn="true"
+                :isHasMarkAsAvailableBtn="false"
                 :isHasEditBtn="true"
+                :isHasDeleteBtn="true"
             />
         </div>
     </AppLayout>

@@ -34,9 +34,9 @@ class MaintainanceController extends Controller
         $request->validate([
             'user_id' => 'required|numeric',
             'machinery_id' => 'required|numeric',
-            'status' => 'required|string',
+            'status' => 'nullable|string',
             // 'date_of_rent' => 'required|date',
-            'remarks'  => 'required|string',
+            'remarks'  => 'nullable|string',
         ]);
 
         Maintainance::create($request->all());
@@ -58,8 +58,8 @@ class MaintainanceController extends Controller
     public function update(Request $request, Maintainance $maintainance)
     {
         $request->validate([
-            'status' => 'required|in:Available,In Use,Under Maintenance',
-            'next_scheduled_maintenance' => 'nullable|date',
+            // 'status' => 'required|in:Available,In Use,Under Maintenance',
+            // 'next_scheduled_maintenance' => 'nullable|date',
         ]);
 
         $maintainance->update($request->all());

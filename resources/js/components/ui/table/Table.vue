@@ -12,6 +12,7 @@ const props = defineProps({
   data: Array,
   perPage: Number,
   isHasDeleteBtn: Boolean,
+  isHasMarkAsAvailableBtn: Boolean,
   isHasEditBtn: Boolean,
   isHasViewBtn: Boolean,
   isHasDownloadQrCodeBtn: Boolean,
@@ -23,6 +24,7 @@ const emit = defineEmits([
   "viewEdit",
   "editItem",
   "deleteItem",
+  "markAsAvailableItem",
   "viewItem",
   "downloadQrCode",
   "notifySMS",
@@ -88,8 +90,15 @@ const ViewItem = (item) => {
 };
 
 const editItem = (item) => {
-  emit("editItem", item);
+  const index = props.data.findIndex((data) => data.id === item.id);
+  emit("editItem", props.data[index]);
 };
+
+const markAsAvailableItem = (item) => {
+  const index = props.data.findIndex((data) => data.id === item.id);
+  emit("markAsAvailableItem", props.data[index]);
+};
+
 
 const deleteItem = (itemId) => {
   if (confirm("Are you sure you want to delete this item?")) {
@@ -108,8 +117,9 @@ const notifySMS = (item) => {
 const downloadPDF = () => {
   const tableBody = [];
   tableBody.push(props.headers);
+ const dataToProcess = [...filteredData.value];
 
-  const processedData = filteredData.value.map(row => {
+  const processedData = dataToProcess.map(row => {
     const newRow = {...row};
     // Example: Add soft hyphens to long strings
     Object.keys(newRow).forEach(key => {
@@ -221,8 +231,9 @@ const downloadPDF = () => {
           <td class="px-4 py-2 flex gap-2">
             <button v-if="props.isHasNotifySMSBtn" @click="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
             <button v-if="props.isHasDownloadQrCodeBtn" @click="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
-            <button v-if="props.isHasEditBtn" @click="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
             <button v-if="props.isHasDeleteBtn" @click="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
+            <button v-if="props.isHasMarkAsAvailableBtn" @click="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
+            <button v-if="props.isHasEditBtn" @click="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
             <button v-if="props.isHasViewBtn" @click="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
           </td>
         </tr>

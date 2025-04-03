@@ -66,4 +66,5 @@ require __DIR__.'/machinery.php';
 require __DIR__.'/rental.php';
 require __DIR__.'/maintainance.php';
 require __DIR__.'/loan.php';
+require __DIR__.'/user.php';
 

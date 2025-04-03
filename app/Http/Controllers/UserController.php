@@ -8,10 +8,26 @@ use Inertia\Inertia;
 
 class UserController extends Controller
 {
+
     public function index()
     {
-        $users = User::paginate(10); // Paginated data
-        return Inertia::render('User', ['users' => $users]);
+        $users = User::with(['rentals.user', 'rentals.machinery', 'loans.user', 'maintainances.user'])->get(); // Or paginate
+        return Inertia::render('User', [
+            'users' => [
+                'data' => $users->map(function ($user) {
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'role' => $user->role,
+                        'created_at' => $user->created_at,
+                        'rentals' => $user->rentals, // Include rentals if needed in the table
+                        'loans' => $user->loans, // Include rentals if needed in the table
+                        'maintainances' => $user->maintainances, // Include rentals if needed in the table
+                    ];
+                })->toArray(),
+            ],
+        ]);
     }
 
     public function store(Request $request)

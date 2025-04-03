@@ -35,6 +35,7 @@ class MaintainanceController extends Controller
             'user_id' => 'required|numeric',
             'machinery_id' => 'required|numeric',
             'status' => 'nullable|string',
+            'maintainance_date' => 'nullable|date',
             // 'date_of_rent' => 'required|date',
             'remarks'  => 'nullable|string',
         ]);

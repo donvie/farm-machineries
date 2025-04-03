@@ -33,12 +33,12 @@ const action = ref('');
 
 console.log('dada', props);
 
-const headers = ['Id', 'Loaner', 'Repayment Date', 'Purpose', 'Created At'];
+const headers = ['Id', 'Loaner', 'Email', 'Amount', 'Status', 'Repayment Date', 'Purpose', 'Created At'];
 const form = useForm({
     user_id: {},
     amount: 0,
     purpose: '',
-    status: 'Ongoing',
+    status: 'Active',
     loanDate: null,
     repaymentDate: null,
     remarks: '',
@@ -105,14 +105,21 @@ const handleView = (item: any) => {
 };
 
 const handleNotifySMS = async (item) => {
-    alert('Sending Email...');
-
+    console.log('item', item);
     try {
         const response = await axios.post('/send-email', {
             // Change route
-            email: 'dtagaban@unawa.asia', // Replace with dynamic email from item if needed
-            subject: 'Notification Email',
-            message: 'Hello, this is a notification email!', // Customize message
+            email: item.email, // Replace with dynamic email from item if needed
+            subject: 'Loan Repayment Reminder',
+            message: `Hello,
+                This is a friendly reminder that your loan repayment is pending. Please take a moment to review your account and make the necessary payment at your earliest convenience.
+
+                If you have already made the payment, please disregard this message. If you have any questions or require assistance, please don't hesitate to contact us.
+
+                Thank you for your prompt attention to this matter.
+
+                Sincerely,
+                Management`,
         });
 
         console.log('response', response.data);
@@ -181,8 +188,9 @@ const handleNotifySMS = async (item) => {
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="Completed">Completed</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Overdue">Overdue</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
                             </div>
@@ -246,8 +254,9 @@ const handleNotifySMS = async (item) => {
 
                                 <Label for="status">Status</Label>
                                 <select disabled id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="Completed">Completed</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Overdue">Overdue</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
 
@@ -284,6 +293,9 @@ const handleNotifySMS = async (item) => {
                     props?.loans?.data.map((loan) => ({
                         id: loan.id,
                         name: loan.user?.name,
+                        email: loan.user?.email,
+                        amount: loan.amount,
+                        status: loan.status,
                         repaymentDate: loan.repaymentDate,
                         purpose: loan.purpose,
                         created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),

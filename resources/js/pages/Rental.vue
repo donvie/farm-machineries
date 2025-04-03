@@ -37,7 +37,7 @@ const headers = ['Id', 'Renter', 'Machine Name', 'Status', 'Remarks', 'Created A
 const form = useForm({
     user_id: null,
     machinery_id: null,
-    status: 'Ongoing',
+    status: 'Active',
     date_of_rent: null,
     user: {
         name: '',
@@ -62,7 +62,7 @@ const addRental = (e: Event) => {
     console.log('Submitting form...');
 
     if (form.id) {
-        if (form.status === 'Completed') {
+        if (form.status === 'Returned') {
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
         }
         router.patch(route('rental.update', form.id), form, {
@@ -168,8 +168,8 @@ const handleDelete = (itemId: string) => {
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="Completed">Completed</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Returned">Returned</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
                             </div>
@@ -219,8 +219,8 @@ const handleDelete = (itemId: string) => {
 
                                 <Label for="status">Status</Label>
                                 <select disabled id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Ongoing">Ongoing</option>
-                                    <option value="Completed">Completed</option>
+                                    <option value="Active">Active</option>
+                                    <option value="Returned">Returned</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
 

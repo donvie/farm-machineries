@@ -16,7 +16,8 @@ const isDialogOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
-const headersViewRental = ['Id', 'Name', 'Email', 'Role', 'Created At', 'Actions'];
+const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
+const headersViewLoans = ['Id', 'Name', 'Amount', 'Purpose', 'Created At'];
 
 const props = defineProps<{
     name?: string;
@@ -25,12 +26,16 @@ const props = defineProps<{
             id: number;
             name: string;
             email: string;
+            rentals: any;
+            loans: any;
+            maintainances: any;
         }>;
     };
 }>();
 
 console.log('propsprops', props);
 
+const headersView1 = ['Id', 'Name', 'Status', 'Maintainance Date', 'Remarks'];
 const headers = ['Id', 'Name', 'Email', 'Role', 'Created At'];
 let form = useForm({
     name: '',
@@ -89,6 +94,9 @@ const closeModal = () => {
 };
 
 const handleView = (item: any) => {
+    Object.keys(item).forEach((key) => {
+        form[key] = item[key] ?? '';
+    });
     selectedItem.value = item;
     console.log('item', item);
     isDialogViewOpen.value = true;
@@ -193,7 +201,7 @@ const handleFileUpload = (event: Event) => {
                     <!-- <DialogTrigger as-child>
                         <Button>View User</Button>
                     </DialogTrigger> -->
-                    <DialogContent>
+                    <DialogContent class="h-screen max-h-screen w-screen max-w-none overflow-y-auto">
                         <form @submit.prevent="saveUser">
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle class="mb-10">View User</DialogTitle>
@@ -204,12 +212,65 @@ const handleFileUpload = (event: Event) => {
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
-                                <Label for="machine_name">Machine Name</Label>
-                                <Input required id="machine_name" v-model="form.name" placeholder="Name" />
+                                <Label for="machine_name">Name</Label>
+                                <Input readonly required id="machine_name" v-model="selectedItem.name" placeholder="Name" />
 
-                                <Label for="type">Type</Label>
-                                <Input required id="type" v-model="form.email" placeholder="Email" />
+                                <Label for="type">Email</Label>
+                                <Input readonly required id="type" v-model="selectedItem.email" placeholder="Email" />
                             </div>
+
+                            <DialogTitle class="py-10">List of Rentals</DialogTitle>
+                            <Table
+                                title="Rental"
+                                :headers="headersViewRental"
+                                :data="selectedItem?.rentals"
+                                :filterData="
+                                    selectedItem?.rentals?.map((rental) => ({
+                                        id: rental.id,
+                                        name: rental.user?.name,
+                                        machine_name: rental?.machinery?.machine_name,
+                                        remarks: rental?.remarks,
+                                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
+                                    }))
+                                "
+                                :noActions="true"
+                                :perPage="10"
+                            />
+
+                            <DialogTitle class="py-10">List of Loans</DialogTitle>
+                            <Table
+                                title="Rental"
+                                :headers="headersViewLoans"
+                                :data="selectedItem?.loans"
+                                :filterData="
+                                    selectedItem?.loans?.map((rental) => ({
+                                        id: rental.id,
+                                        name: rental.user?.name,
+                                        amount: rental?.amount,
+                                        purpose: rental?.purpose,
+                                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
+                                    }))
+                                "
+                                :noActions="true"
+                                :perPage="10"
+                            />
+                            <DialogTitle class="py-10">List of Maintainances</DialogTitle>
+
+                            <Table
+                                :headers="headersView1"
+                                :data="selectedItem?.maintainances"
+                                :filterData="
+                                    selectedItem?.maintainances?.map((maintainance) => ({
+                                        id: maintainance.id,
+                                        name: maintainance.user?.name,
+                                        status: maintainance?.status,
+                                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
+                                        remarks: maintainance?.remarks,
+                                    }))
+                                "
+                                :noActions="true"
+                                :perPage="10"
+                            />
                         </form>
                     </DialogContent>
                 </Dialog>
@@ -233,7 +294,7 @@ const handleFileUpload = (event: Event) => {
                 @viewItem="handleView"
                 :isHasDeleteBtn="true"
                 :isHasEditBtn="false"
-                :isHasViewBtn="false"
+                :isHasViewBtn="true"
             />
         </div>
     </AppLayout>

@@ -6,6 +6,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Rental;
+use App\Models\Loan;
+use App\Models\Maintainance;
 
 class User extends Authenticatable
 {
@@ -45,5 +48,17 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function rentals() {
+        return $this->hasMany(Rental::class, 'user_id', 'id');
+    }
+
+    public function loans() {
+        return $this->hasMany(Loan::class, 'user_id', 'id');
+    }
+
+    public function maintainances() {
+        return $this->hasMany(Maintainance::class, 'user_id', 'id');
     }
 }

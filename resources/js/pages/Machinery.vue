@@ -20,8 +20,8 @@ const isDialogScannerOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
-const headersView = ['Id', 'Name', 'Status', 'Remarks'];
-const headersViewRental = ['Id', 'Name', 'Machine Name'];
+const headersView = ['Id', 'Name', 'Status', 'Maintainance Date', 'Remarks'];
+const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
 
 const props = defineProps<{
     name?: string;
@@ -210,7 +210,7 @@ const handleDownloadQrCode = async (id: any) => {
                                     <option disabled value="Available">Available</option>
                                     <option disabled value="In Use">In Use</option>
                                     <option disabled value="Under Maintenance">Under Maintenance</option>
-                                    <option value="Under Maintenance">Deactivate</option>
+                                    <option value="Deactivate">Deactivate</option>
                                 </select>
 
                                 <Label for="year_acquired">Year Acquired</Label>
@@ -285,6 +285,7 @@ const handleDownloadQrCode = async (id: any) => {
                                         id: maintainance.id,
                                         name: maintainance.user?.name,
                                         status: maintainance?.status,
+                                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
                                         remarks: maintainance?.remarks,
                                     }))
                                 "
@@ -302,6 +303,7 @@ const handleDownloadQrCode = async (id: any) => {
                                         id: rental.id,
                                         name: rental.user?.name,
                                         machine_name: rental?.machinery?.machine_name,
+                                        remarks: rental?.remarks,
                                         created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
                                     }))
                                 "

@@ -116,7 +116,8 @@ const notifySMS = (item) => {
 
 const downloadPDF = () => {
   const tableBody = [];
-  tableBody.push(props.headers);
+ const clonedPropsHeader = [...props.headers];
+  tableBody.push(clonedPropsHeader);
  const dataToProcess = [...filteredData.value];
 
   const processedData = dataToProcess.map(row => {

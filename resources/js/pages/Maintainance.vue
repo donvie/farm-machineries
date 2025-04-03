@@ -34,11 +34,11 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Remarks', 'Create At'];
+const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Maintainance Date', 'Remarks'];
 const form = useForm({
     user_id: null,
     machinery_id: null,
-    status: 'Ongoing',
+    status: 'Pending',
     remarks: '',
 });
 
@@ -166,9 +166,13 @@ const handleDelete = (itemId: string) => {
                                 </select>
                             </div>
 
+                            <Label for="year_acquired">Maintainance Date</Label>
+                            <Input required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
+
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                    <option value="Pending">Pending</option>
                                     <option value="Ongoing">Ongoing</option>
                                     <option value="Completed">Completed</option>
                                 </select>
@@ -230,8 +234,8 @@ const handleDelete = (itemId: string) => {
                         name: maintainance.user?.name,
                         maintainance: maintainance?.machinery?.machine_name,
                         status: maintainance.status,
+                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
                         remarks: maintainance.remarks,
-                        created_at: formattedDate(maintainance.created_at, 'yyyy-MM-dd'),
                     }))
                 "
                 :perPage="10"

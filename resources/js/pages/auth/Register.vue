@@ -12,7 +12,7 @@ const form = useForm({
     name: '',
     email: '',
     password: '',
-    role: '',
+    role: 'admin',
     password_confirmation: '',
 });
 
@@ -41,14 +41,14 @@ const submit = () => {
                     <InputError :message="form.errors.email" />
                 </div>
 
-                <div class="grid gap-2">
+                <!-- <div class="grid gap-2">
                     <Label for="status">Role</Label>
                     <select id="status" v-model="form.role" class="w-full rounded border px-3 py-2">
                         <option value="admin">Admin</option>
                         <option value="farmers">Farmers</option>
-                        <option value="technicians">Technicians</option>
+                        <option value="technician">Technician</option>
                     </select>
-                </div>
+                </div> -->
 
                 <div class="grid gap-2">
                     <Label for="password">Password</Label>

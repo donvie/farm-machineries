@@ -14,7 +14,17 @@ class Machinery extends Model
     protected $fillable = [
         'machine_name', 'type', 'year_acquired', 
         'status', 
-        'last_maintenance_date', 'next_scheduled_maintenance', 'image', 'isDeactivate'
+        'last_maintenance_date', 'next_scheduled_maintenance', 'image', 'isDeactivate',
+        'brand',
+        'serial',
+        'capacity',
+        'accessories',
+        'supplier',
+        'branchAddress',
+        'primeMoverYearAcquired',
+        'primeMoverBrand',
+        'primeMoverSerial',
+        'primeMoverRatedPower',
     ];
 
     /**

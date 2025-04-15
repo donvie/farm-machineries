@@ -60,7 +60,7 @@ class MaintainanceController extends Controller
     {
         $request->validate([
             // 'status' => 'required|in:Available,In Use,Under Maintenance',
-            // 'next_scheduled_maintenance' => 'nullable|date',
+            'completed_date' => 'nullable|date',
         ]);
 
         $maintainance->update($request->all());

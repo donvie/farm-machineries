@@ -14,7 +14,8 @@ class Maintainance extends Model
         'user_id',
         'status',
         'maintainance_date',
-        'remarks'
+        'remarks',
+        'completed_date'
     ];
     
     // ✅ Each maintenance entry belongs to a user

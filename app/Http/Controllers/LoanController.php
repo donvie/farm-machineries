@@ -30,19 +30,28 @@ class LoanController extends Controller
     {
         $request->validate([
             'user_id' => 'required|numeric',
-            // 'status' => 'required|string',
-            // 'remarks'  => 'required|string',
             'amount' => 'required|numeric',
             'purpose' => 'required|string',
-            // 'loanDate' => 'required|date',
-            // 'repaymentDate' => 'required|date',
-            // 'remarks' => 'required|string',
+            // 'loans' => 'nullable|array', // 👈 add this for validation
+            // add other validations if needed
         ]);
+    
+        $data = $request->all();
 
-        Loan::create($request->all());
-
+        if ($request->has('loans')) {
+            $data['loans'] = json_decode($request->loans, true); // convert JSON string to array
+        }
+    
+        // Convert 'loans' array to JSON if it exists
+        // if ($request->has('loans') && is_array($request->loans)) {
+            // $data['loans'] = json_encode($request->loans);
+        // }
+    
+        Loan::create($data);
+    
         return back()->with('success', 'Loan added successfully!');
     }
+    
 
     /**
      * Display the specified resource.
@@ -59,9 +68,21 @@ class LoanController extends Controller
     {
         $request->validate([
             // 'name' => 'required|string',
+            'user_id' => 'required|numeric',
+            'amount' => 'required|numeric',
+            'purpose' => 'required|string',
+            // 'loans.*' => 'string',
         ]);
 
         $loan->update($request->all());
+
+        if ($request->has('loans')) {
+            // Ensure it's JSON before saving
+            $data['loans'] = is_array($request->loans)
+                ? json_encode($request->loans)
+                : $request->loans;
+        }
+    
 
         return back()->with('success', 'Loan updated successfully!');
     }

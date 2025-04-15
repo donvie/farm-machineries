@@ -17,6 +17,11 @@ class Loan extends Model
         'loanDate',
         'repaymentDate',
         'remarks',
+        'loans',
+    ];
+
+    protected $casts = [
+        'loans' => 'array', // <-- This automatically json_encodes / decodes
     ];
 
     public function user()

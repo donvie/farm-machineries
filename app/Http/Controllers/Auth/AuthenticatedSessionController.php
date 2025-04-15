@@ -31,6 +31,14 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+            // Check user role after authentication
+        if (Auth::user()->role === 'user') {
+            Auth::logout();
+            return redirect()->back()->withErrors([
+                'email' => 'User not found',
+            ]);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));

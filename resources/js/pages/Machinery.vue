@@ -20,7 +20,7 @@ const isDialogScannerOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
-const headersView = ['Id', 'Name', 'Status', 'Maintainance Date', 'Remarks'];
+const headersView = ['Id', 'Name', 'Status', 'Maintainance Date', 'Completed Date', 'Remarks'];
 const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
 
 const props = defineProps<{
@@ -210,7 +210,7 @@ const handleDownloadQrCode = async (id: any) => {
                                     <option disabled value="Available">Available</option>
                                     <option disabled value="In Use">In Use</option>
                                     <option disabled value="Under Maintenance">Under Maintenance</option>
-                                    <option value="Deactivate">Deactivate</option>
+                                    <!-- <option value="Deactivate">Deactivate</option> -->
                                 </select>
 
                                 <Label for="year_acquired">Year Acquired</Label>
@@ -286,6 +286,7 @@ const handleDownloadQrCode = async (id: any) => {
                                         name: maintainance.user?.name,
                                         status: maintainance?.status,
                                         maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
+                                        completed_date: formattedDate(maintainance.completed_date, 'yyyy-MM-dd'),
                                         remarks: maintainance?.remarks,
                                     }))
                                 "

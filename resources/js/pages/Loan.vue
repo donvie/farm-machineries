@@ -42,6 +42,13 @@ const form = useForm({
     loanDate: null,
     repaymentDate: null,
     remarks: '',
+    loans: [
+        {
+            purpose: 'urea1111111111',
+            bags: 3,
+            amount: 2000,
+        },
+    ],
 });
 
 const formattedDate = (dateString: any, formatString: any) => {
@@ -55,17 +62,70 @@ const formattedDate = (dateString: any, formatString: any) => {
 
 const addLoan = (e: Event) => {
     e.preventDefault();
-    console.log('Submitting form...');
 
-    router.post(route('loan.store'), form, {
-        preserveScroll: true,
-        onSuccess: () => {
-            closeModal();
-        },
-        onError: (errors) => console.error('Form errors:', errors),
-        onFinish: () => closeModal(),
+    const formData = new FormData();
+
+    Object.entries(form.data()).forEach(([key, value]) => {
+        if (value !== null) {
+            formData.append(key, value);
+        }
     });
+
+    if (form.image) {
+        formData.append('image', form.image);
+    }
+
+    if (Array.isArray(form.loans)) {
+        formData.append('loans', JSON.stringify(form.loans));
+    }
+
+    console.log('formformform', form);
+
+    if (form.id) {
+        if (typeof form.loans === 'string') {
+            try {
+                form.loans = JSON.parse(form.loans);
+            } catch (e) {
+                form.loans = []; // fallback if parsing fails
+            }
+        } else if (typeof form.loans === 'object') {
+            // If form.loans is already an object, do nothing or handle it here
+            // No need to parse it again
+            console.log('form.loans is already an object:', form.loans);
+        }
+
+        console.log('formformform22', form);
+
+        router.patch(route('loan.update', form.id), form, {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+            onError: (errors) => console.error('Form errors:', errors),
+            onFinish: () => closeModal(),
+        });
+    } else {
+        router.post(route('loan.store'), formData, {
+            preserveScroll: true,
+            onSuccess: () => closeModal(),
+            onError: (errors) => console.error('Form errors:', errors),
+            onFinish: () => closeModal(),
+        });
+    }
 };
+
+// const addLoan = (e: Event) => {
+//     e.preventDefault();
+//     console.log('Submitting form...');
+//     console.log('adsss', form);
+
+//     router.post(route('loan.store'), form, {
+//         preserveScroll: true,
+//         onSuccess: () => {
+//             closeModal();
+//         },
+//         onError: (errors) => console.error('Form errors:', errors),
+//         onFinish: () => closeModal(),
+//     });
+// };
 
 const closeModal = () => {
     form.clearErrors();

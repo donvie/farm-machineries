@@ -230,12 +230,12 @@ const downloadPDF = () => {
             {{ value }}
           </td>
           <td class="px-4 py-2 flex gap-2">
-            <button v-if="props.isHasNotifySMSBtn" @click="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
             <button v-if="props.isHasDownloadQrCodeBtn" @click="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
             <button v-if="props.isHasDeleteBtn" @click="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
             <button v-if="props.isHasMarkAsAvailableBtn" @click="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
             <button v-if="props.isHasEditBtn" @click="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
             <button v-if="props.isHasViewBtn" @click="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
+            <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>
         </tr>
       </tbody>

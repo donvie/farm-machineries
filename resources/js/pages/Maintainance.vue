@@ -34,11 +34,12 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Maintainance Date', 'Remarks'];
+const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Maintainance Date', 'Completed Date', 'Remarks'];
 const form = useForm({
     user_id: null,
     machinery_id: null,
     status: 'Pending',
+    // completed_date: null,
     remarks: '',
 });
 
@@ -137,6 +138,7 @@ const handleDelete = (itemId: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
+                {{ form.completed_date }}
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Maintainance</Button>
@@ -150,7 +152,7 @@ const handleDelete = (itemId: string) => {
                                 <Label for="user">Technician</Label>
                                 <select id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
-                                    <option v-for="user in props.users" :key="user.id" :value="user.id">
+                                    <option v-for="user in props.users.filter((user) => user.role === 'technician')" :key="user.id" :value="user.id">
                                         {{ user.name }}
                                     </option>
                                 </select>
@@ -170,6 +172,11 @@ const handleDelete = (itemId: string) => {
                             <Input required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
 
                             <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="completed_date">Completed Date</Label>
+                                <Input required type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option value="Pending">Pending</option>
@@ -177,7 +184,6 @@ const handleDelete = (itemId: string) => {
                                     <option value="Completed">Completed</option>
                                 </select>
                             </div>
-
                             <div class="mb-3">
                                 <Label for="remarks">Remarks</Label>
                                 <Input id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
@@ -235,6 +241,7 @@ const handleDelete = (itemId: string) => {
                         maintainance: maintainance?.machinery?.machine_name,
                         status: maintainance.status,
                         maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
+                        completed_date: formattedDate(maintainance.completed_date, 'yyyy-MM-dd'),
                         remarks: maintainance.remarks,
                     }))
                 "

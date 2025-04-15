@@ -37,8 +37,14 @@ class MachineryController extends Controller
     {
         $request->validate([
             'machine_name' => 'required|string',
-            'type' => 'required|string',
+            // 'type' => 'required|string',
             'status' => 'required|string',
+            'brand' => 'required|string',
+            'serial' => 'required|string',
+            'capacity' => 'required|string',
+            'accessories' => 'required|string',
+            'supplier' => 'required|string',
+            'branchAddress' => 'required|string',
             'year_acquired' => 'required|date',
             'last_maintenance_date' => 'nullable|date',
             'next_scheduled_maintenance' => 'nullable|date',

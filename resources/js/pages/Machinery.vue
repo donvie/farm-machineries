@@ -41,15 +41,22 @@ const props = defineProps<{
 
 console.log('propsprops', props);
 
-const headers = ['Id', 'Machine Name', 'Type', 'Status', 'Year Acquired'];
+const headers = ['Id', 'Machine Name', 'Brand', 'Status', 'Year Acquired'];
 let form = useForm({
     machine_name: '',
+    brand: '',
     type: '',
     status: 'Available',
     year_acquired: '',
     last_maintenance_date: '',
     next_scheduled_maintenance: '',
     image: null,
+    // brand: '',
+    serial: '',
+    capacity: '',
+    accessories: '',
+    supplier: '',
+    branchAddress: '',
 });
 
 const result = ref('');
@@ -117,6 +124,7 @@ const saveMachinery = (e: Event) => {
             onFinish: () => closeModal(),
         });
     } else {
+        console.log('dadFormData', FormData);
         router.post(route('machinery.store'), formData, {
             preserveScroll: true,
             onSuccess: () => closeModal(),
@@ -202,8 +210,22 @@ const handleDownloadQrCode = async (id: any) => {
                                 <Label for="machine_name">Machine Name</Label>
                                 <Input required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
 
-                                <Label for="type">Type</Label>
-                                <Input required id="type" v-model="form.type" placeholder="Enter machine type" />
+                                <Label for="type">Brand</Label>
+                                <Input required id="type" v-model="form.brand" placeholder="Enter brand" />
+
+                                <Label for="type">Serial</Label>
+                                <Input required id="serial" v-model="form.serial" placeholder="Enter Serial" />
+                                <Label for="type">Capacity</Label>
+                                <Input required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
+                                <Label for="type">Attachments/Accesories</Label>
+                                <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" />
+                                <Label for="type">Supplier</Label>
+                                <Input required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
+                                <Label for="type">Branch Address</Label>
+                                <Input required id="branchAddress" v-model="form.branchAddress" placeholder="Enter Branhc Address" />
+
+                                <Label for="year_acquired">Year Acquired</Label>
+                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
 
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
@@ -212,9 +234,6 @@ const handleDownloadQrCode = async (id: any) => {
                                     <option disabled value="Under Maintenance">Under Maintenance</option>
                                     <!-- <option value="Deactivate">Deactivate</option> -->
                                 </select>
-
-                                <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
 
                                 <!-- <Label for="last_maintenance_date">Last Maintenance Date</Label>
                                 <Input
@@ -329,10 +348,10 @@ const handleDownloadQrCode = async (id: any) => {
                 :headers="headers"
                 :data="props?.machineries?.data"
                 :filterData="
-                    props?.machineries?.data.map(({ id, machine_name, type, status, year_acquired, maintainances, created_at }) => ({
+                    props?.machineries?.data.map(({ id, machine_name, brand, status, year_acquired, maintainances, created_at }) => ({
                         id,
                         machine_name,
-                        type,
+                        brand,
                         status,
                         year_acquired,
                     }))

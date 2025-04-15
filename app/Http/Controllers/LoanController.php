@@ -30,8 +30,8 @@ class LoanController extends Controller
     {
         $request->validate([
             'user_id' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'purpose' => 'required|string',
+            // 'amount' => 'required|numeric',
+            // 'purpose' => 'required|string',
             // 'loans' => 'nullable|array', // 👈 add this for validation
             // add other validations if needed
         ]);
@@ -69,8 +69,8 @@ class LoanController extends Controller
         $request->validate([
             // 'name' => 'required|string',
             'user_id' => 'required|numeric',
-            'amount' => 'required|numeric',
-            'purpose' => 'required|string',
+            // 'amount' => 'required|numeric',
+            // 'purpose' => 'required|string',
             // 'loans.*' => 'string',
         ]);
 

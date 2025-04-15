@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -33,7 +33,7 @@ const action = ref('');
 
 console.log('dada', props);
 
-const headers = ['Id', 'Loaner', 'Email', 'Amount', 'Status', 'Repayment Date', 'Purpose', 'Created At'];
+const headers = ['Id', 'Loaner', 'Email', 'Status', 'Repayment Date', 'Created At'];
 const form = useForm({
     user_id: {},
     amount: 0,
@@ -44,9 +44,9 @@ const form = useForm({
     remarks: '',
     loans: [
         {
-            purpose: 'urea1111111111',
-            bags: 3,
-            amount: 2000,
+            purpose: '',
+            bags: '',
+            amount: '',
         },
     ],
 });
@@ -213,6 +213,28 @@ const handleNotifySMS = async (item) => {
     //     alert('Error sending SMS.');
     // }
 };
+
+const totalAmount = computed(() => {
+    return form.loans.reduce((total, loan) => {
+        const loanAmount = loan.amount || 0;
+        const loanQty = loan.bags || 0;
+        return total + loanAmount * loanQty; // Multiply amount by qty (bags)
+    }, 0);
+});
+
+const removeLoan = (index: number) => {
+    if (form.loans.length > 1) {
+        form.loans.splice(index, 1); // This removes the loan at the given index
+    }
+};
+
+const pushLoan = (index: number) => {
+    form.loans.push({
+        purpose: '',
+        bags: '',
+        amount: '',
+    });
+};
 </script>
 
 <template>
@@ -224,10 +246,10 @@ const handleNotifySMS = async (item) => {
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Loan</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addLoan">
                             <DialogHeader class="space-y-3">
-                                <DialogTitle>{{ action === 'add ' ? 'Add New Loan' : 'Edit Loan' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Edit Loan' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
 
@@ -240,10 +262,10 @@ const handleNotifySMS = async (item) => {
                                     </option>
                                 </select>
                             </div>
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <Label for="amount">Amount</Label>
                                 <Input required type="number" id="amount" v-model="form.amount" placeholder="Enter Amount" />
-                            </div>
+                            </div> -->
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
@@ -259,10 +281,51 @@ const handleNotifySMS = async (item) => {
                                 <Input required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repaymentDate" />
                             </div>
 
-                            <div class="mb-3">
+                            <div class="mt-4">
+                                <h3 class="text-lg font-semibold">Loan Details:</h3>
+                                <ul class="ml-6 list-disc">
+                                    <li v-for="(loan, index) in form.loans" :key="index">
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2">
+                                            <Label :for="'purpose-' + index">Purpose</Label>
+                                            <Input required type="text" :id="'purpose-' + index" v-model="loan.purpose" placeholder="Enter Purpose" />
+                                        </div>
+
+                                        <!-- Input for Amount -->
+                                        <div class="mb-2">
+                                            <Label :for="'amount-' + index">Amount</Label>
+                                            <Input required type="number" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
+                                        </div>
+
+                                        <!-- Input for Bags -->
+                                        <div class="mb-2">
+                                            <Label :for="'bags-' + index">Qty</Label>
+                                            <Input
+                                                required
+                                                type="number"
+                                                :id="'bags-' + index"
+                                                v-model="loan.bags"
+                                                placeholder="Enter Number of Bags"
+                                            />
+                                        </div>
+                                        <Button v-if="index !== 0" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
+                                            Remove
+                                        </Button>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="mt-4 text-right">
+                                <Button @click="pushLoan()">Add loan</Button>
+                            </div>
+
+                            <div class="mt-4">
+                                <h3 class="text-md font-semibold">Total Amount: {{ totalAmount }}</h3>
+                            </div>
+
+                            <!-- <div class="mb-3">
                                 <Label for="remarks">Purpose</Label>
                                 <Input required id="purpose" v-model="form.purpose" placeholder="Enter purpose" />
-                            </div>
+                            </div> -->
 
                             <!-- <div class="mb-3">
                                 <Label for="loanDate">Laon Date</Label>
@@ -289,10 +352,10 @@ const handleNotifySMS = async (item) => {
                     <!-- <DialogTrigger as-child>
                         <Button>View Machinery</Button>
                     </DialogTrigger> -->
-                    <DialogContent>
+                    <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>View Machinery</DialogTitle>
+                                <DialogTitle>View Loan</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
 
@@ -300,14 +363,14 @@ const handleNotifySMS = async (item) => {
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
-                                <Label for="machine_name">Machine Name</Label>
+                                <Label for="machine_name">Name</Label>
                                 <Input readonly required id="machine_name" v-model="form.user.name" placeholder="Enter machine name" />
+                                <!-- 
+                                <Label for="type">Amount</Label>
+                                <Input readonly required id="type" v-model="form.amount" placeholder="Enter machine type" /> -->
 
-                                <Label for="type">Type</Label>
-                                <Input readonly required id="type" v-model="form.amount" placeholder="Enter machine type" />
-
-                                <Label for="type">Purpose</Label>
-                                <Input readonly required id="type" v-model="form.purpose" placeholder="Enter machine type" />
+                                <!-- <Label for="type">Purpose</Label>
+                                <Input readonly required id="type" v-model="form.purpose" placeholder="Enter machine type" /> -->
 
                                 <Label for="type">Repayment Date</Label>
                                 <Input readonly required id="type" v-model="form.repaymentDate" placeholder="Enter machine type" />
@@ -319,6 +382,62 @@ const handleNotifySMS = async (item) => {
                                     <option value="Overdue">Overdue</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
+
+                                <div class="mt-4">
+                                    <h3 class="text-lg font-semibold">Loan Details:</h3>
+                                    <ul class="ml-6 list-disc">
+                                        <li v-for="(loan, index) in form.loans" :key="index">
+                                            <!-- Input for Purpose -->
+                                            <div class="mb-2">
+                                                <Label :for="'purpose-' + index">Purpose</Label>
+                                                <Input
+                                                    required
+                                                    readonly
+                                                    type="text"
+                                                    :id="'purpose-' + index"
+                                                    v-model="loan.purpose"
+                                                    placeholder="Enter Purpose"
+                                                />
+                                            </div>
+
+                                            <!-- Input for Amount -->
+                                            <div class="mb-2">
+                                                <Label :for="'amount-' + index">Amount</Label>
+                                                <Input
+                                                    readonly
+                                                    required
+                                                    type="number"
+                                                    :id="'amount-' + index"
+                                                    v-model="loan.amount"
+                                                    placeholder="Enter Amount"
+                                                />
+                                            </div>
+
+                                            <!-- Input for Bags -->
+                                            <div class="mb-2">
+                                                <Label :for="'bags-' + index">Qty</Label>
+                                                <Input
+                                                    readonly
+                                                    required
+                                                    type="number"
+                                                    :id="'bags-' + index"
+                                                    v-model="loan.bags"
+                                                    placeholder="Enter Number of Bags"
+                                                />
+                                            </div>
+                                            <!-- <Button v-if="index !== 0" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
+                                                Remove
+                                            </Button> -->
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- <div class="mt-4 text-right">
+                                    <Button @click="pushLoan()">Add loan</Button>
+                                </div> -->
+
+                                <div class="mt-4">
+                                    <h3 class="text-md font-semibold">Total Amount: {{ totalAmount }}</h3>
+                                </div>
 
                                 <!-- <Label for="year_acquired">Year Acquired</Label>
                                 <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" /> -->
@@ -354,10 +473,8 @@ const handleNotifySMS = async (item) => {
                         id: loan.id,
                         name: loan.user?.name,
                         email: loan.user?.email,
-                        amount: loan.amount,
                         status: loan.status,
                         repaymentDate: loan.repaymentDate,
-                        purpose: loan.purpose,
                         created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
                     }))
                 "
@@ -374,3 +491,10 @@ const handleNotifySMS = async (item) => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.dialog-content {
+    max-height: 80vh; /* Adjust the height as per your design */
+    overflow-y: auto;
+}
+</style>

@@ -18,7 +18,7 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
 const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
-const headersViewLoans = ['Id', 'Name', 'Amount', 'Purpose', 'Created At'];
+const headersViewLoans = ['Id', 'Name', 'Created At'];
 
 const props = defineProps<{
     name?: string;
@@ -258,8 +258,6 @@ const handleFileUpload = (event: Event) => {
                                     selectedItem?.loans?.map((rental) => ({
                                         id: rental.id,
                                         name: rental.user?.name,
-                                        amount: rental?.amount,
-                                        purpose: rental?.purpose,
                                         created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
                                     }))
                                 "

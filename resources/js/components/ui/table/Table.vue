@@ -212,7 +212,7 @@ const downloadPDF = () => {
         type="date"
         class="px-3 py-2 border rounded"
       />
-      <button @click="downloadPDF" class="px-4 py-2 bg-blue-500 text-white rounded">Download PDF</button>
+      <button @click="downloadPDF" class="px-4 py-2 bg-green-500 text-white rounded">Download PDF</button>
     </div>
 
     <table class="w-full text-left text-sm">

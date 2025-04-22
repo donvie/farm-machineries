@@ -116,8 +116,9 @@ const notifySMS = (item) => {
 
 const downloadPDF = () => {
   const tableBody = [];
- const clonedPropsHeader = [...props.headers];
-  tableBody.push(clonedPropsHeader);
+  const clonedPropsHeader = [...props.headers];
+  const formattedHeaderRow = clonedPropsHeader.map(text => ({ text, bold: true }));
+  tableBody.push(formattedHeaderRow);
  const dataToProcess = [...filteredData.value];
 
   const processedData = dataToProcess.map(row => {
@@ -142,7 +143,7 @@ const downloadPDF = () => {
     pageSize: 'A4',
     pageOrientation: 'landscape',
     content: [
-      { text: props.title, style: 'header' },
+      { text: props.title, style: 'header', alignment: 'center' },
       {
         table: {
           widths: props.headers.map(() => columnWidth), // Force even column widths
@@ -225,17 +226,17 @@ const downloadPDF = () => {
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(row, rowIndex) in paginatedData" :key="rowIndex" class="border-b">
+        <tr @click="ViewItem(row)" v-for="(row, rowIndex) in paginatedData" :key="rowIndex" class="border-b">
           <td v-for="(value, colIndex) in row" :key="colIndex" class="px-4 py-2">
             {{ value }}
           </td>
           <td class="px-4 py-2 flex gap-2">
-            <button v-if="props.isHasDownloadQrCodeBtn" @click="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
-            <button v-if="props.isHasDeleteBtn" @click="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
-            <button v-if="props.isHasMarkAsAvailableBtn" @click="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
-            <button v-if="props.isHasEditBtn" @click="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
-            <button v-if="props.isHasViewBtn" @click="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
-            <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
+            <button v-if="props.isHasDownloadQrCodeBtn" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
+            <button v-if="props.isHasDeleteBtn" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
+            <button v-if="props.isHasMarkAsAvailableBtn" @click.stop="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
+            <button v-if="props.isHasEditBtn" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
+            <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
+            <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>
         </tr>
       </tbody>

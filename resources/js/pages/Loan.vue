@@ -44,9 +44,11 @@ const form = useForm({
     remarks: '',
     loans: [
         {
+            type: '',
             purpose: '',
-            bags: '',
+            bags: 1,
             amount: '',
+            areaha: '',
         },
     ],
 });
@@ -231,8 +233,9 @@ const removeLoan = (index: number) => {
 const pushLoan = (index: number) => {
     form.loans.push({
         purpose: '',
-        bags: '',
+        bags: 1,
         amount: '',
+        areaha: '',
     });
 };
 </script>
@@ -287,6 +290,22 @@ const pushLoan = (index: number) => {
                                     <li v-for="(loan, index) in form.loans" :key="index">
                                         <!-- Input for Purpose -->
                                         <div class="mb-2">
+                                            <Label for="status">Type</Label>
+                                            <select :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
+                                                <option value="Loan Fertilizer">Loan Fertilizer</option>
+                                                <option value="Others">Others</option>
+                                            </select>
+                                            <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">AREA HA</Label>
+                                            <Input required type="text" :id="'areaha-' + index" v-model="loan.areaha" placeholder="Enter Area Ha" />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2">
                                             <Label :for="'purpose-' + index">Purpose</Label>
                                             <Input required type="text" :id="'purpose-' + index" v-model="loan.purpose" placeholder="Enter Purpose" />
                                         </div>
@@ -298,7 +317,7 @@ const pushLoan = (index: number) => {
                                         </div>
 
                                         <!-- Input for Bags -->
-                                        <div class="mb-2">
+                                        <div v-if="loan.type === 'Loan Fertilizer'" class="mb-2">
                                             <Label :for="'bags-' + index">Qty</Label>
                                             <Input
                                                 required
@@ -319,7 +338,7 @@ const pushLoan = (index: number) => {
                             </div>
 
                             <div class="mt-4">
-                                <h3 class="text-md font-semibold">Total Amount: {{ totalAmount }}</h3>
+                                <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
                             </div>
 
                             <!-- <div class="mb-3">
@@ -387,6 +406,28 @@ const pushLoan = (index: number) => {
                                     <h3 class="text-lg font-semibold">Loan Details:</h3>
                                     <ul class="ml-6 list-disc">
                                         <li v-for="(loan, index) in form.loans" :key="index">
+                                            <div class="mb-2">
+                                                <Label for="status">Type</Label>
+                                                <select disabled :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
+                                                    <option value="Loan Fertilizer">Loan Fertilizer</option>
+                                                    <option value="Others">Others</option>
+                                                </select>
+                                                <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
+                                            </div>
+
+                                            <!-- Input for Purpose -->
+                                            <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                                <Label :for="'areaha-' + index">AREA HA</Label>
+                                                <Input
+                                                    readonly
+                                                    required
+                                                    type="text"
+                                                    :id="'areaha-' + index"
+                                                    v-model="loan.areaha"
+                                                    placeholder="Enter Area Ha"
+                                                />
+                                            </div>
+
                                             <!-- Input for Purpose -->
                                             <div class="mb-2">
                                                 <Label :for="'purpose-' + index">Purpose</Label>
@@ -414,7 +455,7 @@ const pushLoan = (index: number) => {
                                             </div>
 
                                             <!-- Input for Bags -->
-                                            <div class="mb-2">
+                                            <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
                                                 <Label :for="'bags-' + index">Qty</Label>
                                                 <Input
                                                     readonly
@@ -436,7 +477,7 @@ const pushLoan = (index: number) => {
                                 </div> -->
 
                                 <div class="mt-4">
-                                    <h3 class="text-md font-semibold">Total Amount: {{ totalAmount }}</h3>
+                                    <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
                                 </div>
 
                                 <!-- <Label for="year_acquired">Year Acquired</Label>

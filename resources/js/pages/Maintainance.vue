@@ -138,7 +138,7 @@ const handleDelete = (itemId: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
-                {{ form.completed_date }}
+                <!-- {{ form.completed_date }} -->
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Maintainance</Button>

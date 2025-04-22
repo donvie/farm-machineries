@@ -85,17 +85,29 @@ const onQrCode = () => {
     }
 
     const codeReader = new BrowserMultiFormatReader();
+
     codeReader.decodeFromVideoDevice(undefined, videoElement.value, (decodedResult, error) => {
         if (decodedResult) {
-            result.value = decodedResult.getText();
+            alert(decodedResult.getText());
+
+            const urlObj = new URL(decodedResult.getText());
+            const pathSegments = urlObj.pathname.split('/');
+            const id = pathSegments[pathSegments.length - 1];
+
             isDialogScannerOpen.value = false;
-            const scannedCode = parseInt(36);
+            const scannedCode = parseInt(id);
             const findIndex = props?.machineries?.data.findIndex((machinery: any) => machinery.id === scannedCode);
-            selectedItem.value = props?.machineries?.data[findIndex];
-            isDialogViewOpen.value = true;
+
+            if (findIndex !== -1) {
+                selectedItem.value = props?.machineries?.data[findIndex];
+                isDialogViewOpen.value = true;
+            }
+
             codeReader.reset();
         }
-        if (error) {
+
+        // Optional: log only unexpected errors
+        if (error && error.name !== 'NotFoundException') {
             console.warn('Scanning error:', error);
         }
     });
@@ -176,8 +188,18 @@ const handleFileUpload = (event: Event) => {
     }
 };
 
-const handleDownloadQrCode = async (id: any) => {
-    const qrDataURL = await QRCode.toDataURL(id.toString(), { width: 300 });
+const handleDownloadQrCode = async (id: number) => {
+    const valueToEncode = `https://farmmachineriesmanagementsystem.com/records/${id}`;
+
+    const qrDataURL = await QRCode.toDataURL(valueToEncode, {
+        width: 300,
+        margin: 4,
+        errorCorrectionLevel: 'H',
+        color: {
+            dark: '#000000',
+            light: '#ffffff',
+        },
+    });
 
     const link = document.createElement('a');
     link.href = qrDataURL;
@@ -196,7 +218,7 @@ const handleDownloadQrCode = async (id: any) => {
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Machinery</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>{{ action === 'add' ? 'Add New Machinery' : 'Edit Machinery' }}</DialogTitle>

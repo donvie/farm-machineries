@@ -20,8 +20,20 @@ const isDialogScannerOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
-const headersView = ['Id', 'Name', 'Status', 'Maintainance Date', 'Completed Date', 'Remarks'];
-const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
+const headersView = ['Id', 'Technician', 'Work Done', 'Expenses', 'Status', 'Maintenance Date', 'Completed Date', 'Remarks'];
+const headersViewRental = [
+    'Id',
+    'Lessee',
+    'Operator',
+    'Machine Name',
+    'Condition',
+    'Rent',
+    'Other Expenses',
+    'Status',
+    'Borrow Date',
+    'Completed Date',
+    'Remarks',
+];
 
 const props = defineProps<{
     name?: string;
@@ -57,6 +69,7 @@ let form = useForm({
     accessories: '',
     supplier: '',
     branchAddress: '',
+    costPerMachine: '',
 });
 
 const result = ref('');
@@ -239,12 +252,14 @@ const handleDownloadQrCode = async (id: number) => {
                                 <Input required id="serial" v-model="form.serial" placeholder="Enter Serial" />
                                 <Label for="type">Capacity</Label>
                                 <Input required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
+                                <Label for="type">Fee</Label>
+                                <Input required id="cost" v-model="form.costPerMachine" placeholder="Enter Fee" />
                                 <Label for="type">Attachments/Accesories</Label>
                                 <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" />
                                 <Label for="type">Supplier</Label>
                                 <Input required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
                                 <Label for="type">Branch Address</Label>
-                                <Input required id="branchAddress" v-model="form.branchAddress" placeholder="Enter Branhc Address" />
+                                <Input required id="branchAddress" v-model="form.branchAddress" placeholder="Enter branch Address" />
 
                                 <Label for="year_acquired">Year Acquired</Label>
                                 <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
@@ -306,8 +321,8 @@ const handleDownloadQrCode = async (id: number) => {
                                 <Label for="machine_name">Machine Name</Label>
                                 <Input readonly required id="machine_name" v-model="selectedItem.machine_name" placeholder="Enter machine name" />
 
-                                <Label for="type">Type</Label>
-                                <Input readonly required id="type" v-model="selectedItem.type" placeholder="Enter machine type" />
+                                <!-- <Label for="type">Type</Label>
+                                <Input readonly required id="type" v-model="selectedItem.type" placeholder="Enter machine type" /> -->
 
                                 <Label for="status">Status</Label>
                                 <select disabled id="status" v-model="selectedItem.status" class="w-full rounded border px-3 py-2">
@@ -325,12 +340,16 @@ const handleDownloadQrCode = async (id: number) => {
                                     selectedItem?.maintainances?.map((maintainance) => ({
                                         id: maintainance.id,
                                         name: maintainance.user?.name,
+                                        workDone: maintainance.workDone,
+                                        expenses: maintainance.expenses,
                                         status: maintainance?.status,
-                                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
-                                        completed_date: formattedDate(maintainance.completed_date, 'yyyy-MM-dd'),
+                                        maintainance_date: maintainance.maintainance_date,
+                                        completed_date: maintainance.completed_date,
                                         remarks: maintainance?.remarks,
                                     }))
                                 "
+                                :isHasFilter="true"
+                                :isRowClickable="true"
                                 :noActions="true"
                                 :perPage="10"
                             />
@@ -342,14 +361,22 @@ const handleDownloadQrCode = async (id: number) => {
                                 :data="selectedItem?.rentals"
                                 :filterData="
                                     selectedItem?.rentals?.map((rental) => ({
-                                        id: rental.id,
-                                        name: rental.user?.name,
-                                        machine_name: rental?.machinery?.machine_name,
-                                        remarks: rental?.remarks,
-                                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
+                                        id: rental.id || '',
+                                        name: rental.user?.name || '',
+                                        operator: rental.operator?.name || '',
+                                        machine_name: rental?.machinery?.machine_name || '',
+                                        condition: rental?.condition || '',
+                                        rent: rental?.rent || '',
+                                        otherExpenses: rental?.otherExpenses || '',
+                                        status: rental?.status || '',
+                                        created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
+                                        completed_date: rental.completedDate,
+                                        remarks: rental?.remarks || '',
                                     }))
                                 "
+                                :isHasFilter="true"
                                 :noActions="true"
+                                :isRowClickable="true"
                                 :perPage="10"
                             />
                         </form>
@@ -383,8 +410,10 @@ const handleDownloadQrCode = async (id: number) => {
                 @deleteItem="handleDelete"
                 @viewItem="handleView"
                 @downloadQrCode="handleDownloadQrCode"
+                :isRowClickable="true"
                 :isHasDeleteBtn="true"
                 :isHasEditBtn="true"
+                :isHasFilter="true"
                 :isHasViewBtn="true"
                 :isHasDownloadQrCodeBtn="true"
             />

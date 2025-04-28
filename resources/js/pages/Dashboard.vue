@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
-import Chart from 'chart.js/auto'; // Import Chart.js
+import Chart from 'chart.js/auto';
 import { onMounted, ref } from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -17,46 +17,145 @@ const props = defineProps<{
     name?: string;
     machineries: number;
     maintainances: number;
+    loansData: any[];
     loans: number;
     rentals: number;
+    machineriesData: any[]; //  Add type here
 }>();
 
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
-
 const chartRef = ref<HTMLCanvasElement | null>(null);
+const chartRefDuplicate = ref<HTMLCanvasElement | null>(null); // Ref for the new chart
+
+function groupAndCountMachineStatus(machineData: any[], statuses: string[]) {
+    const groupedData = {};
+
+    machineData.forEach((machine) => {
+        const { machine_name, status } = machine;
+
+        if (!groupedData[machine_name]) {
+            groupedData[machine_name] = {
+                machine_name: machine_name,
+            };
+            statuses.forEach((s) => (groupedData[machine_name][s] = 0));
+        }
+        if (groupedData[machine_name].hasOwnProperty(status)) {
+            groupedData[machine_name][status]++;
+        }
+    });
+
+    const result = Object.values(groupedData);
+    return result;
+}
+
+function groupAndCountLoanStatus(loanData: any[], statuses: string[]) {
+    const groupedData = {};
+
+    loanData.forEach((loan) => {
+        const purposes = loan?.loans || []; // Ensure we have an array to loop through
+        const { status } = loan;
+
+        purposes.forEach((purposeObj) => {
+            const purpose = purposeObj.purpose.item || purposeObj.purpose;
+            if (purpose) {
+                if (!groupedData[purpose]) {
+                    groupedData[purpose] = {
+                        purpose: purpose,
+                    };
+                    statuses.forEach((s) => (groupedData[purpose][s] = 0));
+                }
+                if (groupedData[purpose].hasOwnProperty(status)) {
+                    groupedData[purpose][status]++;
+                }
+            }
+        });
+    });
+
+    const result = Object.values(groupedData);
+    return result;
+}
 
 onMounted(() => {
-    if (chartRef.value) {
-        new Chart(chartRef.value, {
-            type: 'bar', // or 'pie', 'line', etc.
-            data: {
-                labels: ['Machineries', 'Loans', 'Maintainances', 'Rentals'],
-                datasets: [
-                    {
-                        label: 'Counts',
-                        data: [props.machineries, props.loans, props.maintainances, props.rentals],
-                        backgroundColor: [
-                            'rgba(54, 162, 235, 0.2)',
-                            'rgba(75, 192, 192, 0.2)',
-                            'rgba(255, 206, 86, 0.2)',
-                            'rgba(153, 102, 255, 0.2)',
-                        ],
-                        borderColor: ['rgba(54, 162, 235, 1)', 'rgba(75, 192, 192, 1)', 'rgba(255, 206, 86, 1)', 'rgba(153, 102, 255, 1)'],
-                        borderWidth: 1,
+    const originalStatuses = ['Available', 'Under Maintenance', 'In Use', 'Rented'];
+    const groupedDataOriginal = groupAndCountMachineStatus(props.machineriesData, originalStatuses);
+    console.log('Original Grouped Data:', groupedDataOriginal);
+
+    const duplicateStatuses = ['Active', 'Paid', 'Overdue'];
+    const groupedDataDuplicate = groupAndCountLoanStatus(props.loansData, duplicateStatuses);
+    console.log('Duplicate Grouped Data:', groupedDataDuplicate);
+
+    const createChart = (
+        chartRef: typeof chartRef,
+        groupedData: any[],
+        labels: string[],
+        datasetLabels: string[],
+        backgroundColors: string[],
+        borderColors: string[],
+        titleText: string,
+    ) => {
+        if (chartRef.value) {
+            const datasets = datasetLabels.map((label, index) => ({
+                label: label,
+                data: groupedData.map((item) => item[label] || 0), // Handle cases where a status might not exist
+                backgroundColor: backgroundColors[index % backgroundColors.length],
+                borderColor: borderColors[index % borderColors.length],
+                borderWidth: 1,
+            }));
+
+            new Chart(chartRef.value, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets,
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: titleText,
+                            font: {
+                                size: 16,
+                            },
+                        },
                     },
-                ],
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        precision: 0, // Ensure whole numbers on the y-axis
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            precision: 0,
+                        },
                     },
                 },
-            },
-        });
-    }
+            });
+        }
+    };
+
+    // Create the original chart
+    createChart(
+        chartRef,
+        groupedDataOriginal,
+        groupedDataOriginal.map((item) => item.machine_name),
+        originalStatuses,
+        ['rgba(54, 162, 235, 0.7)', 'rgba(255, 206, 86, 0.7)', 'rgba(75, 192, 192, 0.7)', 'rgba(153, 102, 255, 0.7)'],
+        ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)', 'rgba(153, 102, 255, 1)'],
+        'Machine Status by Name',
+    );
+
+    // Create the duplicate chart with different statuses (Loan Status by Purpose)
+    createChart(
+        chartRefDuplicate,
+        groupedDataDuplicate,
+        groupedDataDuplicate.map((item) => item.purpose), // Use 'purpose' for labels
+        duplicateStatuses,
+        ['rgba(255, 99, 132, 0.7)', 'rgba(255, 159, 64, 0.7)', 'rgba(255, 205, 86, 0.7)'], // Example colors
+        ['rgba(255, 99, 132, 1)', 'rgba(255, 159, 64, 1)', 'rgba(255, 205, 86, 1)'], // Example border colors
+        'Loan Status by Purpose', // Update the title to be more accurate
+    );
 });
 </script>
 
@@ -68,39 +167,48 @@ onMounted(() => {
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-blue-500 text-white shadow-lg">
                     <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of machines</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ machineries }}</CardTitle>
-                        <CardTitle class="text-sm opacity-80">Total number of machines</CardTitle>
                     </CardHeader>
                 </Card>
 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">
                     <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of loans</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ loans }}</CardTitle>
-                        <CardTitle class="text-sm opacity-80">Total number of loans</CardTitle>
                     </CardHeader>
                 </Card>
 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-yellow-500 text-gray-900 shadow-lg">
                     <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of maintainance</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ maintainances }}</CardTitle>
-                        <CardTitle class="text-sm opacity-80">Total number of maintainance</CardTitle>
                     </CardHeader>
                 </Card>
 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-purple-500 text-gray-900 shadow-lg">
                     <CardHeader class="text-center">
-                        <CardTitle class="text-2xl font-bold">{{ maintainances }}</CardTitle>
-                        <CardTitle class="text-sm opacity-80">Total number of rentals</CardTitle>
+                        <CardTitle class="text-xl opacity-80">Total number of rentals</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ rentals }}</CardTitle>
                     </CardHeader>
                 </Card>
             </div>
 
             <Card class="mt-4">
                 <CardHeader>
-                    <CardTitle>Dashboard Overview</CardTitle>
+                    <CardTitle>Machine Status Overview</CardTitle>
                 </CardHeader>
                 <div class="p-4">
                     <canvas ref="chartRef" width="400" height="200"></canvas>
+                </div>
+            </Card>
+
+            <Card class="mt-4">
+                <CardHeader>
+                    <CardTitle>Loan Status by Purpose</CardTitle>
+                </CardHeader>
+                <div class="p-4">
+                    <canvas ref="chartRefDuplicate" width="400" height="200"></canvas>
                 </div>
             </Card>
         </div>

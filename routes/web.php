@@ -19,7 +19,10 @@ Route::get('dashboard', function () {
         'machineries' => machinery::count(),
         'maintainances' => maintainance::count(),
         'loans' => loan::count(),
+        'loansData' => loan::all(),
         'rentals' => rental::count(),
+        'machineriesData' => machinery::all()
+
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -66,5 +69,6 @@ require __DIR__.'/machinery.php';
 require __DIR__.'/rental.php';
 require __DIR__.'/maintainance.php';
 require __DIR__.'/loan.php';
+require __DIR__.'/supply.php';
 require __DIR__.'/user.php';
 

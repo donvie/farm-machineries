@@ -14,12 +14,12 @@ class NotificationEmail extends Mailable
     use Queueable, SerializesModels;
 
     public $subject;
-    public $message;
+    public $emailMessage; // <- renamed
 
     public function __construct($subject, $message)
     {
         $this->subject = $subject;
-        $this->message = $message;
+        $this->emailMessage = $message;
     }
 
     public function envelope()
@@ -34,7 +34,7 @@ class NotificationEmail extends Mailable
         return new Content(
             view: 'emails.notification',
             with: [
-                'message' => $this->message,
+                'emailMessage' => $this->emailMessage,
             ],
         );
     }

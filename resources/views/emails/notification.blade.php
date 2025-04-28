@@ -59,22 +59,11 @@
 <body>
     <div class="container">
         <h1>{{ $subject }}</h1>
-        <p>Hello,
-                This is a friendly reminder that your loan repayment is pending. Please take a moment to review your account and make the necessary payment at your earliest convenience.
-
-                If you have already made the payment, please disregard this message. If you have any questions or require assistance, please don't hesitate to contact us.
-
-                Thank you for your prompt attention to this matter.
-                <br><br>
-                Sincerely,<br>
-                Catuguing Management</p>
-
-        @if (isset($actionUrl))
-            <p>
-                <a href="{{ $actionUrl }}" class="button">Take Action</a>
-            </p>
-        @endif
-
+        <p>{{$emailMessage}}</p>
+        <br>
+        Sincerely,<br>
+        Management
+        </p>
         <div class="footer">
             <p>This is an automated email. Please do not reply directly to this message.</p>
         </div>

@@ -34,13 +34,16 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Technician', 'Machine Name', 'Status', 'Maintainance Date', 'Completed Date', 'Remarks'];
+const headers = ['Id', 'Technician', 'Machine Name', 'Work Done', 'Expenses', 'Status', 'Maintenance Date', 'Completed Date', 'Remarks'];
 const form = useForm({
     user_id: null,
     machinery_id: null,
     status: 'Pending',
     // completed_date: null,
     remarks: '',
+    condition: '',
+    workDone: '',
+    expenses: '',
 });
 
 const formattedDate = (dateString: any, formatString: any) => {
@@ -55,6 +58,9 @@ const addMaintainance = (e: Event) => {
     e.preventDefault();
     console.log('Submitting form...');
     console.log('form.machinery', form);
+    console.log('form.machinery111', form.condition);
+    console.log('form.machinery22', form.workDone);
+    console.log('form.machinery333', form.expenses);
 
     if (form.id) {
         if (form.status === 'Completed') {
@@ -68,7 +74,7 @@ const addMaintainance = (e: Event) => {
             onFinish: () => closeModal(),
         });
     } else {
-        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintainance' });
+        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintenance' });
 
         router.post(route('maintainance.store'), form, {
             preserveScroll: true,
@@ -163,12 +169,27 @@ const handleDelete = (itemId: string) => {
                                 <select id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
                                     <option v-for="machinery in props.machineries" :key="machinery.id" :value="machinery.id">
-                                        {{ machinery?.machine_name }}
+                                        {{ machinery?.machine_name }} ({{ machinery?.serial }})
                                     </option>
                                 </select>
                             </div>
 
-                            <Label for="year_acquired">Maintainance Date</Label>
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="condition">Condition</Label>
+                                <Input id="condition" v-model="form.condition" placeholder="Enter Condition" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="workDone">Work Done</Label>
+                                <Input id="workDone" v-model="form.workDone" placeholder="Enter Work Done" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="expenses">Expenses</Label>
+                                <Input id="expenses" v-model="form.expenses" placeholder="Enter Expenses" />
+                            </div>
+
+                            <Label for="year_acquired">Maintenance Date</Label>
                             <Input required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
 
                             <div class="mb-3" v-if="action === 'edit'">
@@ -239,9 +260,11 @@ const handleDelete = (itemId: string) => {
                         id: maintainance.id,
                         name: maintainance.user?.name,
                         maintainance: maintainance?.machinery?.machine_name,
+                        workDone: maintainance.workDone,
+                        expenses: maintainance.expenses,
                         status: maintainance.status,
-                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
-                        completed_date: formattedDate(maintainance.completed_date, 'yyyy-MM-dd'),
+                        maintainance_date: maintainance.maintainance_date,
+                        completed_date: maintainance.completed_date,
                         remarks: maintainance.remarks,
                     }))
                 "
@@ -250,7 +273,9 @@ const handleDelete = (itemId: string) => {
                 @viewItem="handleView"
                 @deleteItem="handleDelete"
                 @markAsAvailableItem="handleMarkAsAvailable"
-                :isHasViewBtn="true"
+                :isHasFilter="true"
+                :isRowClickable="false"
+                :isHasViewBtn="false"
                 :isHasMarkAsAvailableBtn="false"
                 :isHasEditBtn="true"
                 :isHasDeleteBtn="true"

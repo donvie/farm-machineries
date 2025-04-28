@@ -16,11 +16,21 @@ class Rental extends Model
         'status',
         'date_of_rent',
         'remarks',
+        'rent',
+        'otherExpenses',
+        'completedDate',
+        'operator_id',
+        'condition'
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function operator() // Add this relationship
+    {
+        return $this->belongsTo(User::class, 'operator_id'); // Specify the foreign key
     }
 
     public function machinery()

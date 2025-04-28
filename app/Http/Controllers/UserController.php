@@ -11,7 +11,7 @@ class UserController extends Controller
 
     public function index()
     {
-        $users = User::with(['rentals.user', 'rentals.machinery', 'loans.user', 'maintainances.user'])->get(); // Or paginate
+        $users = User::with(['rentals.user', 'rentals.operator', 'rentals.machinery', 'maintainances.machinery', 'loans.user', 'maintainances.user'])->get(); // Or paginate
         return Inertia::render('User', [
             'users' => [
                 'data' => $users->map(function ($user) {

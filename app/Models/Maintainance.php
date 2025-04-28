@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Machinery;
 
 class Maintainance extends Model
 {
@@ -15,7 +16,10 @@ class Maintainance extends Model
         'status',
         'maintainance_date',
         'remarks',
-        'completed_date'
+        'completed_date',
+        'condition',
+        'workDone',
+        'expenses'
     ];
     
     // ✅ Each maintenance entry belongs to a user

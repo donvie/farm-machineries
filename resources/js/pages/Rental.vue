@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
+import pdfMake from 'pdfmake/build/pdfmake';
 import { ref } from 'vue';
 
 import { Button } from '@/components/ui/button';
@@ -33,12 +34,30 @@ console.log('propspropsprops', props);
 const selectedItem = ref({});
 const action = ref('');
 const isDialogViewOpen = ref(false);
-const headers = ['Id', 'Renter', 'Machine Name', 'Status', 'Remarks', 'Created At'];
+const headers = [
+    'Id',
+    'Lessee',
+    'Operator',
+    'Machine Name',
+    'Condition',
+    'Rent',
+    'Other Expenses',
+    'Status',
+    'Borrow Date',
+    'Completed Date',
+    'Remarks',
+];
 const form = useForm({
     user_id: null,
+    operator_id: null,
     machinery_id: null,
     status: 'Active',
+    rent: '',
+    otherExpenses: '',
+    completedDate: '',
+    condition: '',
     date_of_rent: null,
+
     user: {
         name: '',
     },
@@ -63,6 +82,7 @@ const addRental = (e: Event) => {
 
     if (form.id) {
         if (form.status === 'Returned') {
+            form.completedDate = format(new Date(), 'yyyy-MM-dd');
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
         }
         router.patch(route('rental.update', form.id), form, {
@@ -93,6 +113,7 @@ const closeModal = () => {
 
 const handleEdit = (item: any) => {
     action.value = 'edit';
+    selectedItem.value = item;
     isDialogOpen.value = true;
     Object.keys(item).forEach((key) => {
         form[key] = item[key] ?? '';
@@ -106,6 +127,24 @@ const handleView = (item: any) => {
         form[key] = item[key] ?? '';
     });
     isDialogViewOpen.value = true;
+};
+
+const generatePDF = (item: any) => {
+    console.log('selectedItem.value', selectedItem.value);
+    const docDefinition = {
+        content: [
+            { text: 'Receipt', style: 'header' },
+            { text: `Machine: ${selectedItem.value.machinery?.machine_name}`, style: 'subheader' },
+            { text: 'Thank you!', style: 'footer' },
+        ],
+        styles: {
+            header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+            subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
+            footer: { fontSize: 12, italics: true, margin: [0, 10, 0, 0] },
+        },
+    };
+
+    pdfMake.createPdf(docDefinition).download('receipt.pdf');
 };
 
 const handleDelete = (itemId: string) => {
@@ -136,7 +175,7 @@ const handleDelete = (itemId: string) => {
                     <DialogContent>
                         <form @submit.prevent="addRental">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : 'Edit Rental' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : 'Billing' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new rental. </DialogDescription> -->
                             </DialogHeader>
 
@@ -156,6 +195,35 @@ const handleDelete = (itemId: string) => {
                             </div>
 
                             <div class="mb-3">
+                                <Label for="user">Operator</Label>
+                                <select id="user" v-model="form.operator_id" class="w-full rounded border px-3 py-2">
+                                    <option disabled value="">Select a operator</option>
+                                    <option v-for="user in props.users" :key="user.id" :value="user.id">
+                                        {{ user.name }}
+                                    </option>
+                                </select>
+                            </div>
+
+                            <!-- <div class="mb-3">
+                                <Label for="name">Rent</Label>
+                                <Input id="remarks" v-model="form.rent" placeholder="Enter Rent" />
+                            </div> -->
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="otherExpenses">Other Expenses</Label>
+                                <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="condition">Condition</Label>
+                                <Input id="condition" v-model="form.condition" placeholder="Enter Condition" />
+                            </div>
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="otherExpenses">Rent</Label>
+                                <Input id="otherExpenses" v-model="form.rent" placeholder="Enter Rent" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Machinery</Label>
                                 <select id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
@@ -164,7 +232,7 @@ const handleDelete = (itemId: string) => {
                                         :key="machinery.id"
                                         :value="machinery.id"
                                     >
-                                        {{ machinery?.machine_name }}
+                                        {{ machinery?.machine_name }} ({{ machinery?.serial }})
                                     </option>
                                 </select>
                             </div>
@@ -187,6 +255,7 @@ const handleDelete = (itemId: string) => {
                                 <Label for="name">Remarks</Label>
                                 <Input id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
                             </div>
+                            <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
                             <DialogFooter class="mt-4 gap-2">
                                 <DialogClose as-child>
                                     <Button variant="secondary" @click="closeModal">Cancel</Button>
@@ -259,19 +328,26 @@ const handleDelete = (itemId: string) => {
                 :data="props?.rentals?.data"
                 :filterData="
                     props?.rentals?.data.map((rental) => ({
-                        id: rental.id,
-                        name: rental.user?.name,
-                        machine_name: rental?.machinery?.machine_name,
-                        status: rental.status,
-                        remarks: rental.remarks,
-                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
+                        id: rental.id || '',
+                        name: rental.user?.name || '',
+                        operator: rental.operator?.name || '',
+                        machine_name: rental?.machinery?.machine_name || '',
+                        condition: rental?.condition || '',
+                        rent: rental?.rent || '',
+                        otherExpenses: rental?.otherExpenses || '',
+                        status: rental?.status || '',
+                        created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
+                        completed_date: rental.completedDate,
+                        remarks: rental?.remarks || '',
                     }))
                 "
                 :perPage="10"
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"
                 @viewItem="handleView"
-                :isHasViewBtn="true"
+                :isHasFilter="true"
+                :isRowClickable="true"
+                :isHasViewBtn="false"
                 :isHasDeleteBtn="true"
                 :isHasEditBtn="true"
             />

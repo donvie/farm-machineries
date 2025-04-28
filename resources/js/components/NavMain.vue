@@ -14,18 +14,8 @@ const user = page.props.auth.user as User;
 <template>
     <SidebarGroup class="px-2 py-0">
         <SidebarGroupLabel>Menus</SidebarGroupLabel>
-        <SidebarMenu v-if="user.role === 'technician'">
-            <SidebarMenuItem v-for="item in items.filter((item) => item.title === 'Maintainance')" :key="item.title">
-                <SidebarMenuButton as-child :is-active="item.href === page.url">
-                    <Link :href="item.href">
-                        <component :is="item.icon" />
-                        <span>{{ item.title }}</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu v-else>
-            <SidebarMenuItem v-for="item in items.filter((item) => item.title !== 'Maintainance')" :key="item.title">
+        <SidebarMenu >
+            <SidebarMenuItem v-for="item in items" :key="item.title">
                 <SidebarMenuButton as-child :is-active="item.href === page.url">
                     <Link :href="item.href">
                         <component :is="item.icon" />

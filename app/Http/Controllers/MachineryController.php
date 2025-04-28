@@ -21,7 +21,7 @@ class MachineryController extends Controller
 
     public function index()
     {
-        $machineries = Machinery::with(['maintainances.user', 'rentals.user', 'rentals.machinery'])->get();
+        $machineries = Machinery::with(['maintainances.user', 'rentals.user', 'rentals.operator', 'rentals.machinery'])->get();
     
         return Inertia::render('Machinery', [
             'machineries' => [
@@ -40,6 +40,7 @@ class MachineryController extends Controller
             // 'type' => 'required|string',
             'status' => 'required|string',
             'brand' => 'required|string',
+            'costPerMachine' => 'required|integer',
             'serial' => 'required|string',
             'capacity' => 'required|string',
             'accessories' => 'required|string',

@@ -34,6 +34,11 @@ const mainNavItems: NavItem[] = [
         icon: Wallet,
     },
     {
+        title: 'Inventory Supply',
+        href: '/supply',
+        icon: Users,
+    },
+    {
         title: 'User',
         href: '/user',
         icon: Users,

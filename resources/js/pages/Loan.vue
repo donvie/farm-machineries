@@ -11,10 +11,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import axios from 'axios';
+import pdfMake from 'pdfmake/build/pdfmake';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Loan', href: '/loan' }];
 
 const isDialogOpen = ref(false);
+const headersView = ['Amount Paid', 'Date', 'Status'];
 
 const props = defineProps<{
     name?: string;
@@ -25,15 +27,17 @@ const props = defineProps<{
         }>;
         links: Array<{ url: string | null; label: string; active: boolean }>;
     };
+    supplies: {};
     users: {};
 }>();
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
+const amountPaid = ref(0);
 const action = ref('');
 
-console.log('dada', props);
+console.log('dadadad', props);
 
-const headers = ['Id', 'Loaner', 'Email', 'Status', 'Repayment Date', 'Created At'];
+const headers = ['Id', 'Loaner', 'Email', 'Status', 'Repayment Date', 'Loan Date'];
 const form = useForm({
     user_id: {},
     amount: 0,
@@ -51,6 +55,7 @@ const form = useForm({
             areaha: '',
         },
     ],
+    histories: [{ test: '' }],
 });
 
 const formattedDate = (dateString: any, formatString: any) => {
@@ -83,33 +88,77 @@ const addLoan = (e: Event) => {
 
     console.log('formformform', form);
 
+    const updateStocks = () => {
+        // Encapsulate stock update logic
+        if (Array.isArray(form.loans)) {
+            // Ensure form.loans is an array
+            form.loans.forEach((element) => {
+                if (element.type === 'Loan Fertilizer' && element.purpose?.id) {
+                    // Important: Check if element.purpose.id exists
+                    router.patch(
+                        route('supply.update', element.purpose.id),
+                        {
+                            stocks: parseInt(element.purpose.stocks) - parseInt(element.bags),
+                        },
+                        {
+                            preserveScroll: true,
+                            onSuccess: () => {
+                                //  closeModal(); // Consider NOT closing modal here.  Close after ALL updates.
+                            },
+                            onError: (errors) => console.error('Form errors:', errors),
+                            //onFinish: () => closeModal(), //  Move this to after ALL updates
+                        },
+                    );
+                }
+            });
+        }
+    };
+
     if (form.id) {
+        // Existing loan update
         if (typeof form.loans === 'string') {
             try {
                 form.loans = JSON.parse(form.loans);
             } catch (e) {
-                form.loans = []; // fallback if parsing fails
+                form.loans = [];
             }
-        } else if (typeof form.loans === 'object') {
-            // If form.loans is already an object, do nothing or handle it here
-            // No need to parse it again
-            console.log('form.loans is already an object:', form.loans);
+        }
+        console.log('form.histories', form.histories);
+
+        if (typeof form.histories === 'string') {
+            try {
+                form.histories = JSON.parse(form.histories);
+            } catch (error) {
+                console.error('Error parsing form.histories string:', error);
+                // If parsing fails, initialize it as an empty array to prevent further errors
+                form.histories = [];
+            }
         }
 
-        console.log('formformform22', form);
-
+        form.histories = form.histories || [];
+        form.histories.push({
+            amountPaid: amountPaid.value,
+            date: format(new Date(), 'yyyy-MM-dd'),
+            status: form.status,
+        });
         router.patch(route('loan.update', form.id), form, {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
+            onSuccess: () => {
+                updateStocks(); // Call stock update function
+                closeModal(); // Close modal AFTER loan update
+            },
             onError: (errors) => console.error('Form errors:', errors),
-            onFinish: () => closeModal(),
+            //onFinish: () => closeModal(),  Remove from here
         });
     } else {
+        // New loan creation
+        updateStocks(); // Call stock update function *before* creating the loan.
+
         router.post(route('loan.store'), formData, {
             preserveScroll: true,
-            onSuccess: () => closeModal(),
+            onSuccess: () => closeModal(), // Close modal AFTER loan creation
             onError: (errors) => console.error('Form errors:', errors),
-            onFinish: () => closeModal(),
+            // onFinish: () => closeModal(), // Remove from here
         });
     }
 };
@@ -136,6 +185,8 @@ const closeModal = () => {
 };
 
 const handleEdit = (item: any) => {
+    console.log('itdadm', item);
+    selectedItem.value = item;
     action.value = 'edit';
     isDialogOpen.value = true;
     Object.keys(item).forEach((key) => {
@@ -171,19 +222,20 @@ const handleNotifySMS = async (item) => {
     try {
         const response = await axios.post('/send-email', {
             // Change route
-            email: item.email, // Replace with dynamic email from item if needed
+            email: item.user.email, // Replace with dynamic email from item if needed
             subject: 'Loan Repayment Reminder',
-            message: `Hello,
-                This is a friendly reminder that your loan repayment is pending. Please take a moment to review your account and make the necessary payment at your earliest convenience.
+            message: `
+            Gentle Reminder:
 
-                If you have already made the payment, please disregard this message. If you have any questions or require assistance, please don't hesitate to contact us.
+                This is a reminder that your loan repayment was due on ${item.repaymentDate}. We have not yet received your payment of PHP ${item.amount}.
 
-                Thank you for your prompt attention to this matter.
+                Please take a moment to make the payment at your earliest convenience.
 
-                Sincerely,
-                Management`,
+                If you have already made the payment, please disregard this message. If you have any questions or need to discuss your account, please don't hesitate to contact us.
+
+                Thank you for your prompt attention to this matter.`,
+            
         });
-
         console.log('response', response.data);
 
         if (response.data.success) {
@@ -197,23 +249,6 @@ const handleNotifySMS = async (item) => {
     }
     // alert('Sending SMS...');
 
-    // try {
-    //     const response = await axios.post('/send-sms', {
-    //         phone: '09457518657',
-    //         message: 'Hello from Semaphore!',
-    //     });
-
-    //     console.log('response', response.data);
-
-    //     if (response.data.success) {
-    //         alert('SMS sent successfully!');
-    //     } else {
-    //         alert('Failed to send SMS.');
-    //     }
-    // } catch (error) {
-    //     console.log('error', error);
-    //     alert('Error sending SMS.');
-    // }
 };
 
 const totalAmount = computed(() => {
@@ -238,6 +273,24 @@ const pushLoan = (index: number) => {
         areaha: '',
     });
 };
+
+const generatePDF = (item: any) => {
+    console.log('selectedItem.value', selectedItem.value);
+    const docDefinition = {
+        content: [
+            { text: 'Receipt', style: 'header' },
+            // { text: `Machine: ${selectedItem.value.machinery?.machine_name}`, style: 'subheader' },
+            { text: 'Thank you!', style: 'footer' },
+        ],
+        styles: {
+            header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+            subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
+            footer: { fontSize: 12, italics: true, margin: [0, 10, 0, 0] },
+        },
+    };
+
+    pdfMake.createPdf(docDefinition).download('receipt.pdf');
+};
 </script>
 
 <template>
@@ -252,12 +305,12 @@ const pushLoan = (index: number) => {
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addLoan">
                             <DialogHeader class="space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Edit Loan' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Billing' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
 
-                            <div class="mb-3">
-                                <Label for="user">Lender </Label>
+                            <div class="mb-3" v-if="action === 'add'">
+                                <Label for="user">Borrower</Label>
                                 <select id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
                                     <option v-for="user in props.users" :key="user.id" :value="user.id">
@@ -283,37 +336,89 @@ const pushLoan = (index: number) => {
                                 <Label for="loanDate">Repayment Date</Label>
                                 <Input required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repaymentDate" />
                             </div>
-
                             <div class="mt-4">
                                 <h3 class="text-lg font-semibold">Loan Details:</h3>
                                 <ul class="ml-6 list-disc">
+                                    <!-- <pre>{{ form.loans }}</pre> -->
                                     <li v-for="(loan, index) in form.loans" :key="index">
                                         <!-- Input for Purpose -->
                                         <div class="mb-2">
                                             <Label for="status">Type</Label>
                                             <select :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
                                                 <option value="Loan Fertilizer">Loan Fertilizer</option>
-                                                <option value="Others">Others</option>
+                                                <option value="Cash">Cash</option>
                                             </select>
                                             <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2">
+                                            <Label v-if="loan.type === 'Loan Fertilizer'" :for="'purpose-' + index">Item</Label>
+                                            <Label v-else :for="'purpose-' + index">Purpose</Label>
+                                            <select
+                                                v-if="loan.type === 'Loan Fertilizer' && action === 'add'"
+                                                id="user"
+                                                v-model="loan.purpose"
+                                                class="w-full rounded border px-3 py-2"
+                                            >
+                                                <option disabled value="">Select a item</option>
+                                                <option v-for="user in props.supplies.data" :key="user.id" :value="user">
+                                                    {{ user.item }}
+                                                </option>
+                                            </select>
+                                            <!-- <pre>{{ loan.purpose }}</pre> -->
+                                            <select
+                                                disabled
+                                                v-if="loan.type === 'Loan Fertilizer' && action === 'edit'"
+                                                id="user"
+                                                v-model="loan.purpose.id"
+                                                class="w-full rounded border px-3 py-2"
+                                            >
+                                                <option disabled value="">Select a item</option>
+                                                <option v-for="user in props.supplies.data" :key="user.id" :value="loan.purpose.id">
+                                                    {{ user.item }}
+                                                </option>
+                                            </select>
+                                            <Input
+                                                v-if="loan.type === 'Cash'"
+                                                required
+                                                type="text"
+                                                :id="'purpose-' + index"
+                                                v-model="loan.purpose"
+                                                placeholder="Enter Purpose"
+                                            />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">Available Stocks</Label>
+                                            <Input
+                                                readonly
+                                                required
+                                                type="text"
+                                                :id="'areaha-' + index"
+                                                v-model="loan.purpose.stocks"
+                                                placeholder="Enter Available Stocks"
+                                            />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">Unit Price</Label>
+                                            <Input
+                                                readonly
+                                                required
+                                                type="text"
+                                                :id="'areaha-' + index"
+                                                v-model="loan.purpose.unitPrice"
+                                                placeholder="Enter Unit Price"
+                                            />
                                         </div>
 
                                         <!-- Input for Purpose -->
                                         <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
                                             <Label :for="'areaha-' + index">AREA HA</Label>
                                             <Input required type="text" :id="'areaha-' + index" v-model="loan.areaha" placeholder="Enter Area Ha" />
-                                        </div>
-
-                                        <!-- Input for Purpose -->
-                                        <div class="mb-2">
-                                            <Label :for="'purpose-' + index">Purpose</Label>
-                                            <Input required type="text" :id="'purpose-' + index" v-model="loan.purpose" placeholder="Enter Purpose" />
-                                        </div>
-
-                                        <!-- Input for Amount -->
-                                        <div class="mb-2">
-                                            <Label :for="'amount-' + index">Amount</Label>
-                                            <Input required type="number" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
                                         </div>
 
                                         <!-- Input for Bags -->
@@ -327,19 +432,51 @@ const pushLoan = (index: number) => {
                                                 placeholder="Enter Number of Bags"
                                             />
                                         </div>
+
+                                        <!-- Input for Amount -->
+                                        <div class="mb-2">
+                                            <Label :for="'amount-' + index">Amount</Label>
+                                            <Input required type="number" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
+                                        </div>
+
                                         <Button v-if="index !== 0" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
                                             Remove
                                         </Button>
                                     </li>
                                 </ul>
                             </div>
+                            <div class="mb-2" v-if="action === 'edit'">
+                                <Label :for="'amount-' + index">Amount Paid</Label>
+                                <Input required type="number" :id="'amount-' + index" v-model="amountPaid" placeholder="Enter Amount Paid" />
+                            </div>
                             <div class="mt-4 text-right">
                                 <Button @click="pushLoan()">Add loan</Button>
                             </div>
 
+                            <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
+
                             <div class="mt-4">
                                 <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
                             </div>
+
+                            <h3 v-if="action === 'edit' && selectedItem.histories" class="mt-8 text-lg font-semibold">Payment History</h3>
+                            <Table
+                                class="mt-4"
+                                v-if="action === 'edit' && selectedItem.histories"
+                                :headers="headersView"
+                                :data="selectedItem.histories"
+                                :filterData="
+                                    selectedItem.histories?.map((maintainance) => ({
+                                        amountPaid: maintainance.amountPaid,
+                                        date: maintainance.date,
+                                        status: maintainance.status,
+                                    }))
+                                "
+                                :isRowClickable="true"
+                                :noActions="true"
+                                :isHasFilter="false"
+                                :perPage="10"
+                            />
 
                             <!-- <div class="mb-3">
                                 <Label for="remarks">Purpose</Label>
@@ -410,7 +547,7 @@ const pushLoan = (index: number) => {
                                                 <Label for="status">Type</Label>
                                                 <select disabled :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
                                                     <option value="Loan Fertilizer">Loan Fertilizer</option>
-                                                    <option value="Others">Others</option>
+                                                    <option value="Cash">Cash</option>
                                                 </select>
                                                 <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
                                             </div>
@@ -524,9 +661,11 @@ const pushLoan = (index: number) => {
                 @deleteItem="handleDelete"
                 @notifySMS="handleNotifySMS"
                 @viewItem="handleView"
-                :isHasViewBtn="true"
+                :isHasViewBtn="false"
                 :isHasDeleteBtn="true"
+                :isRowClickable="false"
                 :isHasEditBtn="true"
+                :isHasFilter="true"
                 :isHasNotifySMSBtn="true"
             />
         </div>

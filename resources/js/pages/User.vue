@@ -17,8 +17,20 @@ const isDialogOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
-const headersViewRental = ['Id', 'Name', 'Machine Name', 'Remarks', 'Created At'];
-const headersViewLoans = ['Id', 'Name', 'Created At'];
+const headersViewRental = [
+    'Id',
+    'Lessee',
+    'Operator',
+    'Machine Name',
+    'Condition',
+    'Rent',
+    'Other Expenses',
+    'Status',
+    'Borrow Date',
+    'Completed Date',
+    'Remarks',
+];
+const headersViewLoans = ['Id', 'Loaner', 'Email', 'Status', 'Repayment Date', 'Loan Date'];
 
 const props = defineProps<{
     name?: string;
@@ -36,7 +48,7 @@ const props = defineProps<{
 
 console.log('propsprops', props);
 
-const headersView1 = ['Id', 'Name', 'Status', 'Maintainance Date', 'Completed Date', 'Remarks'];
+const headersView1 = ['Id', 'Technician', 'Machine Name', 'Work Done', 'Expenses', 'Status', 'Maintenance Date', 'Completed Date', 'Remarks'];
 const headers = ['Id', 'Name', 'Email', 'Role', 'Created At'];
 let form = useForm({
     name: '',
@@ -238,11 +250,17 @@ const handleFileUpload = (event: Event) => {
                                 :data="selectedItem?.rentals"
                                 :filterData="
                                     selectedItem?.rentals?.map((rental) => ({
-                                        id: rental.id,
-                                        name: rental.user?.name,
-                                        machine_name: rental?.machinery?.machine_name,
-                                        remarks: rental?.remarks,
-                                        created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
+                                        id: rental.id || '',
+                                        name: rental.user?.name || '',
+                                        operator: rental.operator?.name || '',
+                                        machine_name: rental?.machinery?.machine_name || '',
+                                        condition: rental?.condition || '',
+                                        rent: rental?.rent || '',
+                                        otherExpenses: rental?.otherExpenses || '',
+                                        status: rental?.status || '',
+                                        created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
+                                        completed_date: rental.completedDate,
+                                        remarks: rental?.remarks || '',
                                     }))
                                 "
                                 :noActions="true"
@@ -258,9 +276,13 @@ const handleFileUpload = (event: Event) => {
                                     selectedItem?.loans?.map((rental) => ({
                                         id: rental.id,
                                         name: rental.user?.name,
+                                        email: rental.user?.email,
+                                        status: rental.status,
+                                        repaymentDate: rental.repaymentDate,
                                         created_at: formattedDate(rental.created_at, 'yyyy-MM-dd'),
                                     }))
                                 "
+                                :isHasFilter="true"
                                 :noActions="true"
                                 :perPage="10"
                             />
@@ -273,10 +295,13 @@ const handleFileUpload = (event: Event) => {
                                     selectedItem?.maintainances?.map((maintainance) => ({
                                         id: maintainance.id,
                                         name: maintainance.user?.name,
-                                        status: maintainance?.status,
-                                        maintainance_date: formattedDate(maintainance.maintainance_date, 'yyyy-MM-dd'),
-                                        completed_date: formattedDate(maintainance.completed_date, 'yyyy-MM-dd'),
-                                        remarks: maintainance?.remarks,
+                                        maintainance: maintainance?.machinery?.machine_name,
+                                        workDone: maintainance.workDone,
+                                        expenses: maintainance.expenses,
+                                        status: maintainance.status,
+                                        maintainance_date: maintainance.maintainance_date,
+                                        completed_date: maintainance.completed_date,
+                                        remarks: maintainance.remarks,
                                     }))
                                 "
                                 :noActions="true"
@@ -303,6 +328,7 @@ const handleFileUpload = (event: Event) => {
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"
                 @viewItem="handleView"
+                :isHasFilter="true"
                 :isHasDeleteBtn="true"
                 :isHasEditBtn="false"
                 :isHasViewBtn="true"

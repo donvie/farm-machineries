@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use App\Models\Rental;
 use App\Models\Loan;
 use App\Models\Maintainance;
+use App\Models\Machinery;
 
 class User extends Authenticatable
 {
@@ -60,5 +61,10 @@ class User extends Authenticatable
 
     public function maintainances() {
         return $this->hasMany(Maintainance::class, 'user_id', 'id');
+    }
+
+    public function machinery()
+    {
+        return $this->belongsTo(Machinery::class, 'machinery_id');
     }
 }

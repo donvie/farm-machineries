@@ -15,7 +15,7 @@ class RentalController extends Controller
      */
     public function index()
     {
-        $rentals = Rental::with(['user', 'machinery'])->get();
+        $rentals = Rental::with(['user', 'machinery', 'operator'])->get();
 
         // Convert machinery_id to an integer
         // $rentals = $rentals->map(function ($rental) {
@@ -46,7 +46,7 @@ class RentalController extends Controller
             'machinery_id' => 'required|numeric',
             'status' => 'required|string',
             // 'date_of_rent' => 'required|date',
-            'remarks'  => 'required|string',
+            // 'remarks'  => 'required|string',
         ]);
 
         Rental::create($request->all());

@@ -18,6 +18,8 @@ const props = defineProps({
   isHasDownloadQrCodeBtn: Boolean,
   isHasNotifySMSBtn: Boolean,
   noActions: Boolean,
+  isHasFilter: Boolean,
+  isRowClickable: Boolean
 });
 
 const emit = defineEmits([
@@ -111,7 +113,9 @@ const downloadQrCode = (itemId) => {
 };
 
 const notifySMS = (item) => {
-  emit("notifySMS", item);
+    const index = props.data.findIndex((data) => data.id === item.id);
+  // emit("editItem", props.data[index]);
+  emit("notifySMS", props.data[index]);
 };
 
 const downloadPDF = () => {
@@ -196,7 +200,7 @@ const downloadPDF = () => {
 
 <template>
   <div class="overflow-x-auto rounded-md border border-gray-200">
-    <div class="p-4 flex flex-wrap gap-2">
+    <div v-if="props.isHasFilter" class="p-4 flex flex-wrap gap-2">
       <input
         v-model="searchQuery"
         type="text"
@@ -226,7 +230,7 @@ const downloadPDF = () => {
         </tr>
       </thead>
       <tbody>
-        <tr @click="ViewItem(row)" v-for="(row, rowIndex) in paginatedData" :key="rowIndex" class="border-b">
+        <tr @click="props.isRowClickable ? ViewItem(row) : null" v-for="(row, rowIndex) in paginatedData" :key="rowIndex" class="border-b">
           <td v-for="(value, colIndex) in row" :key="colIndex" class="px-4 py-2">
             {{ value }}
           </td>
@@ -234,7 +238,7 @@ const downloadPDF = () => {
             <button v-if="props.isHasDownloadQrCodeBtn" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
             <button v-if="props.isHasDeleteBtn" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
             <button v-if="props.isHasMarkAsAvailableBtn" @click.stop="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
-            <button v-if="props.isHasEditBtn" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">Edit</button>
+            <button v-if="props.isHasEditBtn" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">{{title === 'Loan' || title === 'Rental' ? 'Billing' : 'Edit' }}</button>
             <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
             <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>

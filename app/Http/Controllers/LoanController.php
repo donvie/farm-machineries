@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Loan;
 use App\Models\User;
+use App\Models\Supply;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -17,9 +18,11 @@ class LoanController extends Controller
         $loans = Loan::with(['user'])->get();
         // $loans = Loan::all(); // Load all data
         $users = User::all(); // Load all users
+        $supplies = Supply::all(); // Load all users
 
         return Inertia::render('Loan', [
             'loans' => ['data' => $loans],
+            'supplies' => ['data' => $supplies],
             'users' => $users,]);
         }
 
@@ -40,6 +43,11 @@ class LoanController extends Controller
 
         if ($request->has('loans')) {
             $data['loans'] = json_decode($request->loans, true); // convert JSON string to array
+        }
+
+        
+        if ($request->has('histories')) {
+            $data['histories'] = json_decode($request->histories, true); // convert JSON string to array
         }
     
         // Convert 'loans' array to JSON if it exists
@@ -82,6 +90,15 @@ class LoanController extends Controller
                 ? json_encode($request->loans)
                 : $request->loans;
         }
+
+        
+        if ($request->has('histories')) {
+            // Ensure it's JSON before saving
+            $data['histories'] = is_array($request->histories)
+                ? json_encode($request->histories)
+                : $request->histories;
+        }
+    
     
 
         return back()->with('success', 'Loan updated successfully!');

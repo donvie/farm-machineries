@@ -18,10 +18,13 @@ class Loan extends Model
         'repaymentDate',
         'remarks',
         'loans',
+        'histories',
+        'qty'
     ];
 
     protected $casts = [
         'loans' => 'array', // <-- This automatically json_encodes / decodes
+        'histories' => 'array', // <-- This automatically json_encodes / decodes
     ];
 
     public function user()

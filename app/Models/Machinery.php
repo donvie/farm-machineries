@@ -25,7 +25,7 @@ class Machinery extends Model
         'primeMoverBrand',
         'primeMoverSerial',
         'primeMoverRatedPower',
-        'costPerMachine',
+        // 'costPerMachine',
         'condition',
         'workDone',
         'expenses'

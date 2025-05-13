@@ -69,6 +69,18 @@ const formattedDate = (dateString: any, formatString: any) => {
 };
 
 const addLoan = (e: Event) => {
+
+
+    if (form.loans.map(loan => {
+    // Convert 'bags' to a number for comparison
+    const bags = Number(loan.bags);
+    const stocks = loan.purpose.stocks;
+    const exceeds = bags > stocks;
+    return exceeds; // Returns true if loan.bags > loan.purpose.stocks, false otherwise
+  }).includes(true)) {
+    return 
+  }
+    
     e.preventDefault();
 
     const formData = new FormData();
@@ -395,7 +407,7 @@ const filteredLoansForTable = computed(() => {
                                             >
                                                 <option disabled value="">Select a item</option>
                                                 <option :disabled="user.stocks <= 0" v-for="user in props.supplies.data" :key="user.id" :value="user">
-                                                    {{ user.item }}  {{ user.stocks <= 0 ? '(Out of stocks)' : '' }} 
+                                                    {{ user.item }}  {{ user.stocks <= 0 ? '(Out of stocks)' : `(${user.stocks})` }} 
                                                 </option>
                                             </select>
                                             <!-- <pre>{{ loan.purpose }}</pre> -->
@@ -459,12 +471,14 @@ const filteredLoansForTable = computed(() => {
                                             <Input
                                                 :readonly="action === 'edit'"
                                                 required
+                                                user.stocks
                                                 style="background-color: white"
                                                 type="text"
                                                 :id="'bags-' + index"
                                                 v-model="loan.bags"
                                                 placeholder="Enter Number of Bags"
                                             />
+                                            <Label v-if="loan.bags > loan.purpose.stocks" class="mt-3" style="color: red" :for="'purpose-' + index">Insufficient Qty</Label>
                                         </div>
 
                                         <!-- Input for Amount -->

@@ -279,8 +279,8 @@ const filteredMachineriesForTable = computed(() => {
                                 <Input required id="serial" v-model="form.serial" placeholder="Enter Serial" />
                                 <Label for="type">Capacity</Label>
                                 <Input required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
-                                <Label for="type">Fee</Label>
-                                <Input required id="cost" v-model="form.costPerMachine" placeholder="Enter Fee" />
+                                <!-- <Label for="type">Fee</Label> -->
+                                <!-- <Input required id="cost" v-model="form.costPerMachine" placeholder="Enter Fee" /> -->
                                 <!-- <Label for="type">Attachments/Accesories</Label>
                                 <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" /> -->
                                 <Label for="type">Supplier</Label>
@@ -332,7 +332,8 @@ const filteredMachineriesForTable = computed(() => {
                 <select id="status" v-model="filter" class="ml-2" style="height: 37px">
                     <option value="All">All</option>
                     <option value="Available">Available</option>
-                    <option value="In Use">Under Maintenance</option>
+                    <option value="In Use">In Use</option>
+                    <option value="Under Maintenance">Under Maintenance</option>
                 </select>
 
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">

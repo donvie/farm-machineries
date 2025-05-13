@@ -40,7 +40,7 @@ class MachineryController extends Controller
             // 'type' => 'required|string',
             'status' => 'required|string',
             'brand' => 'required|string',
-            'costPerMachine' => 'required|string',
+            // 'costPerMachine' => 'required|string',
             'serial' => 'required|string',
             'capacity' => 'required|string',
             // 'accessories' => 'required|string',

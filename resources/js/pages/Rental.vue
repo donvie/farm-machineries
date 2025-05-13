@@ -247,7 +247,7 @@ const filteredRentalsForTable = computed(() => {
                             <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Harvester'">
                                 <Label for="status">Attachment</Label>
                                 <select id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
-                                    <option value="Blade">With Blade</option>
+                                    <option value="With Blade">With Blade</option>
                                     <option value="Without Blade">Without Blade</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
@@ -255,8 +255,12 @@ const filteredRentalsForTable = computed(() => {
 
                             
                             <div class="mb-3" v-if="action === 'edit'">
-                                <Label for="otherExpenses">Number of sqm</Label>
-                                <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Number of sqm" />
+                                
+                                <Label v-if="form.attachment === 'Without Blade'" for="otherExpenses">Number of sack/s</Label>
+                                <Input  v-if="form.attachment === 'Without Blade'" id="otherExpenses" v-model="form.otherExpenses" placeholder="Number of sack/s" />
+                                
+                                <Label v-if="form.attachment === 'With Blade' || form.attachment === ''" for="otherExpenses">Number of sqm</Label>
+                                <Input v-if="form.attachment === 'With Blade' || form.attachment === ''" id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Number of sqm" />
                             </div>
 
                             <!-- <div class="mb-3" v-if="action === 'edit'">

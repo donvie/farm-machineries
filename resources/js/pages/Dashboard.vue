@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type SharedData, type User } from '@/types';
 import { Head, usePage } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed} from 'vue';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -26,7 +26,21 @@ const props = defineProps<{
 const page = usePage<SharedData>();
 const user = page.props.auth.user as User;
 const chartRef = ref<HTMLCanvasElement | null>(null);
-const chartRefDuplicate = ref<HTMLCanvasElement | null>(null); // Ref for the new chart
+const chartRefDuplicate = ref<HTMLCanvasElement | null>(null);
+
+const fertilizerCount = ref(0);
+const cashCount = ref(0);
+
+const calculateLoanCounts = () => {
+    fertilizerCount.value = props.loansData.reduce((count, item) => {
+    return count + item.loans.filter(loan => loan.type === 'Loan Fertilizer').length;
+    }, 0);
+
+    cashCount.value = props.loansData.reduce((count, item) => {
+    return count + item.loans.filter(loan => loan.type === 'Cash').length;
+    }, 0);
+};
+
 
 function groupAndCountMachineStatus(machineData: any[], statuses: string[]) {
     const groupedData = {};
@@ -77,7 +91,9 @@ function groupAndCountLoanStatus(loanData: any[], statuses: string[]) {
 }
 
 onMounted(() => {
+    calculateLoanCounts();
     const originalStatuses = ['Available', 'Under Maintenance', 'In Use', 'Rented'];
+    console.log('props.machineriesData',props.loansData)
     const groupedDataOriginal = groupAndCountMachineStatus(props.machineriesData, originalStatuses);
     console.log('Original Grouped Data:', groupedDataOriginal);
 
@@ -167,19 +183,49 @@ onMounted(() => {
             <div class="grid auto-rows-min gap-4 md:grid-cols-3">
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-blue-500 text-white shadow-lg">
                     <CardHeader class="text-center">
-                        <CardTitle class="text-xl opacity-80">Total number of machines</CardTitle>
-                        <CardTitle class="text-2xl font-bold">{{ machineries }}</CardTitle>
+                        <CardTitle class="text-xl opacity-80">Total number of machineries</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ machineriesData.length }}</CardTitle>
                     </CardHeader>
                 </Card>
 
-                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">
+                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-pink-500 text-white shadow-lg">                    <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of available machineries</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ machineriesData?.filter(machine=> machine.status === 'Available').length }}</CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-yellow-500 text-white shadow-lg">                    <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of machineries in use</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ machineriesData?.filter(machine=> machine.status === 'In Use').length }}</CardTitle>
+                    </CardHeader>
+                </Card>
+                
+                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">                    <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of machineries under maintainance</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ machineriesData?.filter(machine=> machine.status === 'Under Maintenance').length }}</CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-purple-500 text-white shadow-lg">                    <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of approved fertilizer</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ fertilizerCount  }}</CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-red-500 text-white shadow-lg">                    <CardHeader class="text-center">
+                        <CardTitle class="text-xl opacity-80">Total number of approved cash loans</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ cashCount }}</CardTitle>
+                    </CardHeader>
+                </Card>
+
+                <!-- <Card class="flex h-[120px] items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">
                     <CardHeader class="text-center">
                         <CardTitle class="text-xl opacity-80">Total number of loans</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ loans }}</CardTitle>
                     </CardHeader>
-                </Card>
+                </Card> -->
 
-                <Card class="flex h-[120px] items-center justify-center rounded-xl bg-yellow-500 text-gray-900 shadow-lg">
+                <!-- <Card class="flex h-[120px] items-center justify-center rounded-xl bg-yellow-500 text-gray-900 shadow-lg">
                     <CardHeader class="text-center">
                         <CardTitle class="text-xl opacity-80">Total number of maintainance</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ maintainances }}</CardTitle>
@@ -191,10 +237,10 @@ onMounted(() => {
                         <CardTitle class="text-xl opacity-80">Total number of rentals</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ rentals }}</CardTitle>
                     </CardHeader>
-                </Card>
+                </Card> -->
             </div>
 
-            <Card class="mt-4">
+            <!-- <Card class="mt-4">
                 <CardHeader>
                     <CardTitle>Machine Status Overview</CardTitle>
                 </CardHeader>
@@ -210,7 +256,7 @@ onMounted(() => {
                 <div class="p-4">
                     <canvas ref="chartRefDuplicate" width="400" height="200"></canvas>
                 </div>
-            </Card>
+            </Card> -->
         </div>
     </AppLayout>
 </template>

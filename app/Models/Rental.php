@@ -20,7 +20,11 @@ class Rental extends Model
         'otherExpenses',
         'completedDate',
         'operator_id',
-        'condition'
+        'condition',
+        'hectare',
+        'rentFee',
+        'attachment',
+        'totalHarvest'
     ];
 
     public function user()

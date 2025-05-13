@@ -14,7 +14,9 @@ class Supply extends Model
         'item',
         'stocks',
         'unitPrice',
-        'remarks'
+        'remarks',
+        'type',
+        'field'
     ];
 
 }

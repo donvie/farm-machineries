@@ -36,8 +36,9 @@ const amountPaid = ref(0);
 const action = ref('');
 
 console.log('dadadad', props);
+const filter = ref('All');
 
-const headers = ['Id', 'Loaner', 'Email', 'Status', 'Repayment Date', 'Loan Date'];
+const headers = ['Id', 'Loaner', 'Email', 'Status', 'Total Amount', 'Due Date',  'Loan Date'];
 const form = useForm({
     user_id: {},
     amount: 0,
@@ -291,6 +292,37 @@ const generatePDF = (item: any) => {
 
     pdfMake.createPdf(docDefinition).download('receipt.pdf');
 };
+
+
+const filteredLoans = computed(() => {
+  if (filter.value === 'All') {
+    return props?.loans?.data;
+  } else {
+    return props?.loans?.data.filter(
+      (loan) => loan.status === filter.value
+    );
+  }
+});
+
+const filteredLoansForTable = computed(() => {
+  return filteredLoans.value.map((loan) => {
+    // Calculate the total amount for the current loan object
+    const totalAmount = loan.loans.reduce((sum, singleLoan) => {
+      return sum + (singleLoan.amount * singleLoan.bags);
+    }, 0);
+
+    return {
+      id: loan.id,
+      name: loan.user?.name,
+      email: loan.user?.email,
+      status: loan.status,
+      totalAmount: totalAmount, // Assign the calculated totalAmount
+      repaymentDate: loan.repaymentDate,
+      created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
+    };
+  });
+});
+
 </script>
 
 <template>
@@ -333,7 +365,7 @@ const generatePDF = (item: any) => {
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <Label for="loanDate">Repayment Date</Label>
+                                <Label for="loanDate">Due Date</Label>
                                 <Input required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repaymentDate" />
                             </div>
                             <div class="mt-4">
@@ -344,7 +376,7 @@ const generatePDF = (item: any) => {
                                         <!-- Input for Purpose -->
                                         <div class="mb-2">
                                             <Label for="status">Type</Label>
-                                            <select :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
+                                            <select :disabled="action === 'edit'" :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
                                                 <option value="Loan Fertilizer">Loan Fertilizer</option>
                                                 <option value="Cash">Cash</option>
                                             </select>
@@ -362,8 +394,8 @@ const generatePDF = (item: any) => {
                                                 class="w-full rounded border px-3 py-2"
                                             >
                                                 <option disabled value="">Select a item</option>
-                                                <option v-for="user in props.supplies.data" :key="user.id" :value="user">
-                                                    {{ user.item }}
+                                                <option :disabled="user.stocks <= 0" v-for="user in props.supplies.data" :key="user.id" :value="user">
+                                                    {{ user.item }}  {{ user.stocks <= 0 ? '(Out of stocks)' : '' }} 
                                                 </option>
                                             </select>
                                             <!-- <pre>{{ loan.purpose }}</pre> -->
@@ -416,17 +448,19 @@ const generatePDF = (item: any) => {
                                         </div>
 
                                         <!-- Input for Purpose -->
-                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                        <!-- <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
                                             <Label :for="'areaha-' + index">AREA HA</Label>
-                                            <Input required type="text" :id="'areaha-' + index" v-model="loan.areaha" placeholder="Enter Area Ha" />
-                                        </div>
+                                            <Input style="background-color: white" required type="text" :id="'areaha-' + index" v-model="loan.areaha" placeholder="Enter Area Ha" />
+                                        </div> -->
 
                                         <!-- Input for Bags -->
                                         <div v-if="loan.type === 'Loan Fertilizer'" class="mb-2">
                                             <Label :for="'bags-' + index">Qty</Label>
                                             <Input
+                                                :readonly="action === 'edit'"
                                                 required
-                                                type="number"
+                                                style="background-color: white"
+                                                type="text"
                                                 :id="'bags-' + index"
                                                 v-model="loan.bags"
                                                 placeholder="Enter Number of Bags"
@@ -434,12 +468,19 @@ const generatePDF = (item: any) => {
                                         </div>
 
                                         <!-- Input for Amount -->
-                                        <div class="mb-2">
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
                                             <Label :for="'amount-' + index">Amount</Label>
-                                            <Input required type="number" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
+                                            <!-- <pre>{{loan}}</pre> -->
+                                            <!-- <div style="margin-left: 10px" v-if="action === 'edit'" >{{loan.purpose.unitPrice * loan.bags}}</div> -->
+                                            <Input v-if="action === 'edit'" readonly style="background-color: white"  type="text" :id="'amoudadnt-' + index"  :placeholder="loan.purpose.unitPrice * loan.bags" />
+                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.amount = loan.purpose.unitPrice * loan.bags" placeholder="Enter Amount" />
+                                        </div>
+                                        <div class="mb-2" v-else>
+                                            <Label :for="'amount-' + index">Amount</Label>
+                                            <Input style="background-color: white" required type="text" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
                                         </div>
 
-                                        <Button v-if="index !== 0" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
+                                        <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
                                             Remove
                                         </Button>
                                     </li>
@@ -449,13 +490,22 @@ const generatePDF = (item: any) => {
                                 <Label :for="'amount-' + index">Amount Paid</Label>
                                 <Input required type="number" :id="'amount-' + index" v-model="amountPaid" placeholder="Enter Amount Paid" />
                             </div>
-                            <div class="mt-4 text-right">
+                            <div class="mt-4 text-right" v-if="action === 'add'">
                                 <Button @click="pushLoan()">Add loan</Button>
                             </div>
 
                             <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
 
                             <div class="mt-4">
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Remaining Balance: {{ 
+                                selectedItem.loans.reduce((total, loan) => {
+                                    const loanAmount = loan.amount || 0;
+                                    const loanQty = loan.bags || 0;
+                                    return total + loanAmount * loanQty; // Multiply amount by qty (bags)
+                                }, 0) - selectedItem.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0) }}</h3>
                                 <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
                             </div>
 
@@ -504,139 +554,50 @@ const generatePDF = (item: any) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                <select id="filter" v-model="filter"  class="ml-2" style="height: 37px">
+                    <option value="All">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
+                </select>
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
-                    <!-- <DialogTrigger as-child>
-                        <Button>View Machinery</Button>
-                    </DialogTrigger> -->
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>View Loan</DialogTitle>
-                                <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
-
-                            <div class="grid gap-4">
-                                <!-- <Label for="image">Upload Image</Label>
-                                <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
-
-                                <Label for="machine_name">Name</Label>
-                                <Input readonly required id="machine_name" v-model="form.user.name" placeholder="Enter machine name" />
-                                <!-- 
-                                <Label for="type">Amount</Label>
-                                <Input readonly required id="type" v-model="form.amount" placeholder="Enter machine type" /> -->
-
-                                <!-- <Label for="type">Purpose</Label>
-                                <Input readonly required id="type" v-model="form.purpose" placeholder="Enter machine type" /> -->
-
-                                <Label for="type">Repayment Date</Label>
-                                <Input readonly required id="type" v-model="form.repaymentDate" placeholder="Enter machine type" />
-
-                                <Label for="status">Status</Label>
-                                <select disabled id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Active">Active</option>
-                                    <option value="Paid">Paid</option>
-                                    <option value="Overdue">Overdue</option>
-                                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
-                                </select>
-
-                                <div class="mt-4">
-                                    <h3 class="text-lg font-semibold">Loan Details:</h3>
-                                    <ul class="ml-6 list-disc">
-                                        <li v-for="(loan, index) in form.loans" :key="index">
-                                            <div class="mb-2">
-                                                <Label for="status">Type</Label>
-                                                <select disabled :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
-                                                    <option value="Loan Fertilizer">Loan Fertilizer</option>
-                                                    <option value="Cash">Cash</option>
-                                                </select>
-                                                <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
-                                            </div>
-
-                                            <!-- Input for Purpose -->
-                                            <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
-                                                <Label :for="'areaha-' + index">AREA HA</Label>
-                                                <Input
-                                                    readonly
-                                                    required
-                                                    type="text"
-                                                    :id="'areaha-' + index"
-                                                    v-model="loan.areaha"
-                                                    placeholder="Enter Area Ha"
-                                                />
-                                            </div>
-
-                                            <!-- Input for Purpose -->
-                                            <div class="mb-2">
-                                                <Label :for="'purpose-' + index">Purpose</Label>
-                                                <Input
-                                                    required
-                                                    readonly
-                                                    type="text"
-                                                    :id="'purpose-' + index"
-                                                    v-model="loan.purpose"
-                                                    placeholder="Enter Purpose"
-                                                />
-                                            </div>
-
-                                            <!-- Input for Amount -->
-                                            <div class="mb-2">
-                                                <Label :for="'amount-' + index">Amount</Label>
-                                                <Input
-                                                    readonly
-                                                    required
-                                                    type="number"
-                                                    :id="'amount-' + index"
-                                                    v-model="loan.amount"
-                                                    placeholder="Enter Amount"
-                                                />
-                                            </div>
-
-                                            <!-- Input for Bags -->
-                                            <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
-                                                <Label :for="'bags-' + index">Qty</Label>
-                                                <Input
-                                                    readonly
-                                                    required
-                                                    type="number"
-                                                    :id="'bags-' + index"
-                                                    v-model="loan.bags"
-                                                    placeholder="Enter Number of Bags"
-                                                />
-                                            </div>
-                                            <!-- <Button v-if="index !== 0" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
-                                                Remove
-                                            </Button> -->
-                                        </li>
-                                    </ul>
-                                </div>
-                                <!-- <div class="mt-4 text-right">
-                                    <Button @click="pushLoan()">Add loan</Button>
-                                </div> -->
-
-                                <div class="mt-4">
-                                    <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
-                                </div>
-
-                                <!-- <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" /> -->
-
-                                <!-- <Label for="last_maintenance_date">Last Maintenance Date</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="last_maintenance_date"
-                                    v-model="form.last_maintenance_date"
-                                    placeholder="Enter Last Maintenance Date"
-                                /> -->
-
-                                <!-- <Label for="next_scheduled_maintenance">Next Scheduled Maintenance</Label>
-                                <Input
-                                    required
-                                    type="date"
-                                    id="next_scheduled_maintenance"
-                                    v-model="form.next_scheduled_maintenance"
-                                    placeholder="Enter Next Scheduled Maintenance"
-                                /> -->
+                            <h3 class="mt-8 text-lg font-semibold">Payment History</h3>
+                            <h3 v-if="!selectedItem.histories" class="mt-8 text-lg text-center font-semibold">No data</h3>
+                            
+                            <Table
+                                class="mt-4"
+                                v-if="selectedItem.histories"
+                                :headers="headersView"
+                                :data="selectedItem.histories"
+                                :filterData="
+                                    selectedItem.histories?.map((maintainance) => ({
+                                        amountPaid: maintainance.amountPaid,
+                                        date: maintainance.date,
+                                        status: maintainance.status,
+                                    }))
+                                "
+                                :isRowClickable="true"
+                                :noActions="true"
+                                :isHasFilter="false"
+                                :perPage="10"
+                            />
+                            <div class="mt-4">
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Remaining Balance: {{ 
+                                selectedItem.loans.reduce((total, loan) => {
+                                    const loanAmount = loan.amount || 0;
+                                    const loanQty = loan.bags || 0;
+                                    return total + loanAmount * loanQty; // Multiply amount by qty (bags)
+                                }, 0) - selectedItem.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0) }}</h3>
+                                <h3 class="text-md font-semibold">Total Amount: {{ totalAmount.toFixed(2) }}</h3>
                             </div>
                         </form>
                     </DialogContent>
@@ -645,23 +606,14 @@ const generatePDF = (item: any) => {
             <Table
                 title="Loan"
                 :headers="headers"
-                :data="props?.loans?.data"
-                :filterData="
-                    props?.loans?.data.map((loan) => ({
-                        id: loan.id,
-                        name: loan.user?.name,
-                        email: loan.user?.email,
-                        status: loan.status,
-                        repaymentDate: loan.repaymentDate,
-                        created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
-                    }))
-                "
+                :data="filteredLoans"
+                :filterData="filteredLoansForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"
                 @notifySMS="handleNotifySMS"
                 @viewItem="handleView"
-                :isHasViewBtn="false"
+                :isHasViewBtn="true"
                 :isHasDeleteBtn="true"
                 :isRowClickable="false"
                 :isHasEditBtn="true"

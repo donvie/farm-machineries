@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onMounted, ref, computed} from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -45,6 +45,9 @@ const form = useForm({
     workDone: '',
     expenses: '',
 });
+
+const filter = ref('All');
+
 
 const formattedDate = (dateString: any, formatString: any) => {
     try {
@@ -137,6 +140,31 @@ const handleDelete = (itemId: string) => {
         onError: (errors) => console.error('Deletion error:', errors),
     });
 };
+
+const filteredMaintainances = computed(() => {
+  if (filter.value === 'All') {
+    return props?.maintainances?.data;
+  } else {
+    return props?.maintainances?.data.filter(
+      (maintainance) => maintainance.status === filter.value
+    );
+  }
+});
+
+const filteredMaintainancesForTable = computed(() => {
+  return filteredMaintainances.value.map((maintainance) => ({
+    id: maintainance.id,
+    name: maintainance.user?.name,
+    maintainance: maintainance?.machinery?.machine_name,
+    workDone: maintainance.workDone,
+    expenses: maintainance.expenses,
+    status: maintainance.status,
+    maintainance_date: maintainance.maintainance_date,
+    completed_date: maintainance.completed_date,
+    remarks: maintainance.remarks,
+  }));
+});
+
 </script>
 
 <template>
@@ -156,7 +184,7 @@ const handleDelete = (itemId: string) => {
                             </DialogHeader>
                             <div class="mb-3">
                                 <Label for="user">Technician</Label>
-                                <select id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
+                                <select :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
                                     <option v-for="user in props.users.filter((user) => user.role === 'technician')" :key="user.id" :value="user.id">
                                         {{ user.name }}
@@ -166,7 +194,7 @@ const handleDelete = (itemId: string) => {
 
                             <div class="mb-3">
                                 <Label for="user">Machinery</Label>
-                                <select id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
+                                <select  :disabled="action === 'edit'" id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
                                     <option v-for="machinery in props.machineries" :key="machinery.id" :value="machinery.id">
                                         {{ machinery?.machine_name }} ({{ machinery?.serial }})
@@ -250,24 +278,18 @@ const handleDelete = (itemId: string) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                <select id="status" v-model="filter" class="ml-2" style="height: 37px">
+                    <option value="All">All</option>
+                    <option value="Ongoing">Ongoing</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Completed">Completed</option>
+                </select>
             </div>
             <Table
                 title="Maintainance"
                 :headers="headers"
-                :data="props?.maintainances?.data"
-                :filterData="
-                    props?.maintainances?.data.map((maintainance) => ({
-                        id: maintainance.id,
-                        name: maintainance.user?.name,
-                        maintainance: maintainance?.machinery?.machine_name,
-                        workDone: maintainance.workDone,
-                        expenses: maintainance.expenses,
-                        status: maintainance.status,
-                        maintainance_date: maintainance.maintainance_date,
-                        completed_date: maintainance.completed_date,
-                        remarks: maintainance.remarks,
-                    }))
-                "
+                :data="filteredMaintainances"
+                :filterData="filteredMaintainancesForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @viewItem="handleView"

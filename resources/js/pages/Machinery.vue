@@ -4,7 +4,8 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import QRCode from 'qrcode';
-import { ref } from 'vue';
+
+import { onMounted, ref, computed} from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -53,7 +54,7 @@ const props = defineProps<{
 
 console.log('propsprops', props);
 
-const headers = ['Id', 'Machine Name', 'Brand', 'Status', 'Year Acquired'];
+const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Year Acquired'];
 let form = useForm({
     machine_name: '',
     brand: '',
@@ -74,6 +75,7 @@ let form = useForm({
 
 const result = ref('');
 const videoElement = ref(null);
+const filter = ref('All');
 
 const onScan = () => {
     isDialogScannerOpen.value = true;
@@ -219,6 +221,31 @@ const handleDownloadQrCode = async (id: number) => {
     link.download = 'qrcode.png';
     link.click();
 };
+
+const filteredMachineries = computed(() => {
+  if (filter.value === 'All') {
+    return props?.machineries?.data;
+  } else if (filter.value === 'Under Maintenance') {
+    return props?.machineries?.data.filter(
+      (machinery) => machinery.status === 'Under Maintenance'
+    );
+  } else {
+    return props?.machineries?.data.filter((machinery) => machinery.status === filter.value);
+  }
+});
+
+// Computed property for the filterData prop of the Table component
+const filteredMachineriesForTable = computed(() => {
+  return filteredMachineries.value.map(({ id, machine_name, brand, serial, status, year_acquired }) => ({
+    id,
+    machine_name,
+    serial,
+    brand,
+    status,
+    year_acquired,
+  }));
+});
+
 </script>
 
 <template>
@@ -254,8 +281,8 @@ const handleDownloadQrCode = async (id: number) => {
                                 <Input required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
                                 <Label for="type">Fee</Label>
                                 <Input required id="cost" v-model="form.costPerMachine" placeholder="Enter Fee" />
-                                <Label for="type">Attachments/Accesories</Label>
-                                <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" />
+                                <!-- <Label for="type">Attachments/Accesories</Label>
+                                <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" /> -->
                                 <Label for="type">Supplier</Label>
                                 <Input required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
                                 <Label for="type">Branch Address</Label>
@@ -264,8 +291,8 @@ const handleDownloadQrCode = async (id: number) => {
                                 <Label for="year_acquired">Year Acquired</Label>
                                 <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
 
-                                <Label for="status">Status</Label>
-                                <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                <Label v-if="action === 'edit'" for="status">Status</Label>
+                                <select v-if="action === 'edit'" id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option disabled value="Available">Available</option>
                                     <option disabled value="In Use">In Use</option>
                                     <option disabled value="Under Maintenance">Under Maintenance</option>
@@ -302,6 +329,11 @@ const handleDownloadQrCode = async (id: number) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                <select id="status" v-model="filter" class="ml-2" style="height: 37px">
+                    <option value="All">All</option>
+                    <option value="Available">Available</option>
+                    <option value="In Use">Under Maintenance</option>
+                </select>
 
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
                     <!-- <DialogTrigger as-child>
@@ -395,16 +427,8 @@ const handleDownloadQrCode = async (id: number) => {
             <Table
                 title="Machinery"
                 :headers="headers"
-                :data="props?.machineries?.data"
-                :filterData="
-                    props?.machineries?.data.map(({ id, machine_name, brand, status, year_acquired, maintainances, created_at }) => ({
-                        id,
-                        machine_name,
-                        brand,
-                        status,
-                        year_acquired,
-                    }))
-                "
+                :data="filteredMachineries"
+                :filterData="filteredMachineriesForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"

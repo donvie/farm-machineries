@@ -17,11 +17,11 @@ Route::get('/', function () {
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard', [
         'machineries' => machinery::count(),
+        'machineriesData' => machinery::all(),
         'maintainances' => maintainance::count(),
         'loans' => loan::count(),
         'loansData' => loan::all(),
         'rentals' => rental::count(),
-        'machineriesData' => machinery::all()
 
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');

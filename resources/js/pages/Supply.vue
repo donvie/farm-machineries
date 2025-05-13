@@ -2,7 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { onMounted, ref, computed} from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -34,13 +34,15 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Item', 'Unit Price', 'Stocks'];
+const headers = ['Id', 'Item', 'Type', 'Unit Price', 'Stocks'];
 const form = useForm({
     item: '',
     stocks: '',
     unitPrice: '',
+    type: '',
     remarks: '',
 });
+const filter = ref('All');
 
 const formattedDate = (dateString: any, formatString: any) => {
     try {
@@ -130,6 +132,28 @@ const handleDelete = (itemId: string) => {
         onError: (errors) => console.error('Deletion error:', errors),
     });
 };
+
+
+const filteredMaintainances = computed(() => {
+  if (filter.value === 'All') {
+    return props?.supplies?.data;
+  } else {
+    return props?.supplies?.data.filter(
+      (maintainance) => maintainance.type === filter.value
+    );
+  }
+});
+
+const filteredMaintainancesForTable = computed(() => {
+  return filteredMaintainances.value.map((supply) => ({
+    id: supply.id,
+    item: supply.item,
+    type: supply.type,
+    unitPrice: supply.unitPrice,
+    stocks: supply?.stocks < 0 ? 0 : supply.stocks,
+  }));
+});
+
 </script>
 
 <template>
@@ -162,6 +186,15 @@ const handleDelete = (itemId: string) => {
                                 <Label for="stocks">Stocks</Label>
                                 <Input id="stocks" v-model="form.stocks" placeholder="Stocks" />
                             </div>
+                            <div class="mb-3">
+                                 <Label  for="type">Type</Label>
+                                <select id="status" v-model="form.type" class="w-full rounded border px-3 py-2">
+                                    <option  value="All">All</option>
+                                    <option  value="Fertilizer">Fertilizer</option>
+                                    <option  value="Insecticide">Insecticide</option>
+                                </select>
+                            </div>
+
 
                             <DialogFooter class="mt-4 gap-2">
                                 <DialogClose as-child>
@@ -174,6 +207,11 @@ const handleDelete = (itemId: string) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                <select id="status" v-model="filter" class="ml-2" style="height: 37px">
+                    <option value="All">All</option>
+                    <option  value="Fertilizer">Fertilizer</option>
+                    <option  value="Insecticide">Insecticide</option>
+                </select>
 
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
                     <DialogContent>
@@ -198,15 +236,9 @@ const handleDelete = (itemId: string) => {
             <Table
                 title="Supply"
                 :headers="headers"
-                :data="props?.supplies?.data"
-                :filterData="
-                    props?.supplies?.data.map((supply) => ({
-                        id: supply.id,
-                        item: supply.item,
-                        unitPrice: supply.unitPrice,
-                        stocks: supply?.stocks,
-                    }))
-                "
+                :isHasFilter="true"
+                :data="filteredMaintainances"
+                :filterData="filteredMaintainancesForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @viewItem="handleView"

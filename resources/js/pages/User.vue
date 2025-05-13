@@ -2,7 +2,8 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+
+import { onMounted, ref, computed} from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -57,6 +58,7 @@ let form = useForm({
     password: '',
 });
 
+const filter = ref('All');
 const result = ref('');
 const videoElement = ref(null);
 
@@ -68,6 +70,26 @@ const formattedDate = (dateString: any, formatString: any) => {
         return 'Invalid Date';
     }
 };
+
+const filteredUsers = computed(() => {
+  if (filter.value === 'All') {
+    return props?.users?.data;
+  } else {
+    return props?.users?.data.filter(
+      (user) => user.role === filter.value
+    );
+  }
+});
+
+const filteredUsersForTable = computed(() => {
+  return filteredUsers.value.map(({ id, name, email, role, created_at }) => ({
+    id,
+    name,
+    email,
+    role,
+    created_at: formattedDate(created_at, 'yyyy-MM-dd'),
+  }));
+});
 
 const saveUser = (e: Event) => {
     e.preventDefault();
@@ -220,6 +242,14 @@ const handleFileUpload = (event: Event) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                
+                <select id="status" v-model="filter" class="ml-2" style="height: 37px">
+                    <option value="All">All</option>
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="technician">Technician</option>
+                </select>
+
 
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
                     <!-- <DialogTrigger as-child>
@@ -314,16 +344,8 @@ const handleFileUpload = (event: Event) => {
             <Table
                 title="User"
                 :headers="headers"
-                :data="props?.users?.data"
-                :filterData="
-                    props?.users?.data.map(({ id, name, email, role, created_at }) => ({
-                        id,
-                        name,
-                        email,
-                        role,
-                        created_at: formattedDate(created_at, 'yyyy-MM-dd'),
-                    }))
-                "
+                :data="filteredUsers"
+                :filterData="filteredUsersForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"

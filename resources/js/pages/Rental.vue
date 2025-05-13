@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import pdfMake from 'pdfmake/build/pdfmake';
-import { ref } from 'vue';
+import { onMounted, ref, computed} from 'vue';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -39,9 +39,9 @@ const headers = [
     'Lessee',
     'Operator',
     'Machine Name',
-    'Condition',
+    'Condition after use',
     'Rent',
-    'Other Expenses',
+    // 'Other Expenses',
     'Status',
     'Borrow Date',
     'Completed Date',
@@ -52,6 +52,7 @@ const form = useForm({
     operator_id: null,
     machinery_id: null,
     status: 'Active',
+    attachment: '',
     rent: '',
     otherExpenses: '',
     completedDate: '',
@@ -67,6 +68,7 @@ const form = useForm({
     remarks: '',
 });
 
+const filter = ref('All');
 const formattedDate = (dateString: any, formatString: any) => {
     try {
         const date = parseISO(dateString);
@@ -161,6 +163,33 @@ const handleDelete = (itemId: string) => {
         onError: (errors) => console.error('Deletion error:', errors),
     });
 };
+
+const filteredRentals = computed(() => {
+  if (filter.value === 'All') {
+    return props?.rentals?.data;
+  } else {
+    return props?.rentals?.data.filter(
+      (rental) => rental.status === filter.value
+    );
+  }
+});
+
+const filteredRentalsForTable = computed(() => {
+  return filteredRentals.value.map((rental) => ({
+    id: rental.id || '',
+    name: rental.user?.name || '',
+    operator: rental.operator?.name || '',
+    machine_name: rental?.machinery?.machine_name || '',
+    condition: rental?.condition || '',
+    rent: rental?.rent || '',
+    // otherExpenses: rental?.otherExpenses || '',
+    status: rental?.status || '',
+    created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
+    completed_date: rental.completedDate,
+    remarks: rental?.remarks || '',
+  }));
+});
+
 </script>
 
 <template>
@@ -168,6 +197,7 @@ const handleDelete = (itemId: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
+
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Rental</Button>
@@ -186,7 +216,7 @@ const handleDelete = (itemId: string) => {
                              -->
                             <div class="mb-3">
                                 <Label for="user">Lessee</Label>
-                                <select id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
+                                <select :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
                                     <option v-for="user in props.users" :key="user.id" :value="user.id">
                                         {{ user.name }}
@@ -196,7 +226,7 @@ const handleDelete = (itemId: string) => {
 
                             <div class="mb-3">
                                 <Label for="user">Operator</Label>
-                                <select id="user" v-model="form.operator_id" class="w-full rounded border px-3 py-2">
+                                <select :disabled="action === 'edit'" id="user" v-model="form.operator_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a operator</option>
                                     <option v-for="user in props.users" :key="user.id" :value="user.id">
                                         {{ user.name }}
@@ -204,23 +234,46 @@ const handleDelete = (itemId: string) => {
                                 </select>
                             </div>
 
-                            <!-- <div class="mb-3">
-                                <Label for="name">Rent</Label>
-                                <Input id="remarks" v-model="form.rent" placeholder="Enter Rent" />
-                            </div> -->
+                            <div class="mb-3"  v-if="action === 'edit'">
+                                <Label for="name">Machine Name</Label>
+                                <Input readonly id="remarks" v-model="form.machinery.machine_name" placeholder="Enter Machine Name" />
+                            </div>
 
-                            <div class="mb-3" v-if="action === 'edit'">
+                            <!-- <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="otherExpenses">Other Expenses</Label>
                                 <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
+                            </div> -->
+
+                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Harvester'">
+                                <Label for="status">Attachment</Label>
+                                <select id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
+                                    <option value="Blade">With Blade</option>
+                                    <option value="Without Blade">Without Blade</option>
+                                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
+                                </select>
                             </div>
 
+                            
                             <div class="mb-3" v-if="action === 'edit'">
-                                <Label for="condition">Condition</Label>
-                                <Input id="condition" v-model="form.condition" placeholder="Enter Condition" />
+                                <Label for="otherExpenses">Number of sqm</Label>
+                                <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Number of sqm" />
                             </div>
+
+                            <!-- <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="otherExpenses">Rent fee</Label>
+                                <Input id="otherExpenses" v-model="form.rentFee" placeholder="Enter rent fee" />
+                            </div> -->
+
+
                             <div class="mb-3" v-if="action === 'edit'">
-                                <Label for="otherExpenses">Rent</Label>
-                                <Input id="otherExpenses" v-model="form.rent" placeholder="Enter Rent" />
+                                <Label for="otherExpenses">Rent fee</Label>
+                                <Input id="otherExpenses" v-model="form.rent" placeholder="Enter Rent fee" />
+                            </div>
+    
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="otherExpenses">Total Fee</Label>
+                                
+                                <Input readonly id="otherExpenses" :placeholder="form.otherExpenses * form.rent" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'add'">
@@ -235,6 +288,11 @@ const handleDelete = (itemId: string) => {
                                         {{ machinery?.machine_name }} ({{ machinery?.serial }})
                                     </option>
                                 </select>
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="condition">Condition</Label>
+                                <Input id="condition" v-model="form.condition" placeholder="Enter Condition" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
@@ -267,6 +325,12 @@ const handleDelete = (itemId: string) => {
                         </form>
                     </DialogContent>
                 </Dialog>
+                <select style="height: 37px"  id="status" v-model="filter"  class="ml-2">
+                    <option value="All">All</option>
+                    <option value="Active">Active</option>
+                    <option value="Returned">Returned</option>
+                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
+                </select>
                 <Dialog :open="isDialogViewOpen" @update:open="isDialogViewOpen = $event">
                     <!-- <DialogTrigger as-child>
                         <Button>View Machinery</Button>
@@ -325,22 +389,8 @@ const handleDelete = (itemId: string) => {
             <Table
                 title="Rental"
                 :headers="headers"
-                :data="props?.rentals?.data"
-                :filterData="
-                    props?.rentals?.data.map((rental) => ({
-                        id: rental.id || '',
-                        name: rental.user?.name || '',
-                        operator: rental.operator?.name || '',
-                        machine_name: rental?.machinery?.machine_name || '',
-                        condition: rental?.condition || '',
-                        rent: rental?.rent || '',
-                        otherExpenses: rental?.otherExpenses || '',
-                        status: rental?.status || '',
-                        created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
-                        completed_date: rental.completedDate,
-                        remarks: rental?.remarks || '',
-                    }))
-                "
+                :data="filteredRentals"
+                :filterData="filteredRentalsForTable"
                 :perPage="10"
                 @editItem="handleEdit"
                 @deleteItem="handleDelete"

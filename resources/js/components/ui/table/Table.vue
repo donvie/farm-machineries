@@ -238,7 +238,7 @@ const downloadPDF = () => {
             <button v-if="props.isHasDownloadQrCodeBtn" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
             <button v-if="props.isHasDeleteBtn" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
             <button v-if="props.isHasMarkAsAvailableBtn" @click.stop="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
-            <button v-if="props.isHasEditBtn" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">{{title === 'Loan' || title === 'Rental' ? 'Billing' : 'Edit' }}</button>
+            <button v-if="props.isHasEditBtn && row.status !== 'Returned'" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">{{title === 'Loan' || title === 'Rental' ? 'Billing' : 'Edit' }}</button>
             <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
             <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>

@@ -269,15 +269,21 @@ const filteredRentalsForTable = computed(() => {
                             </div> -->
 
 
-                            <div class="mb-3" v-if="action === 'edit'">
+                            <div class="mb-3" v-if="action === 'edit' && form.attachment !== 'Without Blade'">
                                 <Label for="otherExpenses">Rent fee</Label>
                                 <Input id="otherExpenses" v-model="form.rent" placeholder="Enter Rent fee" />
                             </div>
     
-                            <div class="mb-3" v-if="action === 'edit'">
+                            <div class="mb-3" v-if="action === 'edit' && form.attachment !== 'Without Blade'">
                                 <Label for="otherExpenses">Total Fee</Label>
                                 
                                 <Input readonly id="otherExpenses" :placeholder="form.otherExpenses * form.rent" />
+                            </div>
+    
+                            <div class="mb-3" v-else>
+                                <Label for="otherExpenses">Total number of Bolibol</Label>
+                                
+                                <Input readonly id="otherExpenses" :placeholder="form.otherExpenses / 10" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'add'">

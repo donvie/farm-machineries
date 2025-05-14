@@ -281,9 +281,9 @@ const filteredRentalsForTable = computed(() => {
                             </div>
     
                             <div class="mb-3" v-else>
-                                <Label for="otherExpenses">Total number of harvested crop</Label>
+                                <Label v-if="action === 'edit'" for="otherExpenses">Total number of harvested crop</Label>
                                 
-                                <Input readonly id="otherExpenses" :placeholder="form.otherExpenses / 10" />
+                                <Input v-if="action === 'edit'" readonly id="otherExpenses" :placeholder="form.otherExpenses / 10" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'add'">

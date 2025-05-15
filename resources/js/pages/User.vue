@@ -191,13 +191,13 @@ const handleFileUpload = (event: Event) => {
 
                             <div class="grid gap-4">
                                 <Label for="name">Name</Label>
-                                <Input required id="name" v-model="form.name" placeholder="Enter name" />
+                                <Input  style="background: white"  required id="name" v-model="form.name" placeholder="Enter name" />
 
                                 <Label for="email">Email</Label>
-                                <Input required id="email" v-model="form.email" placeholder="Enter email" />
+                                <Input  style="background: white"  required id="email" v-model="form.email" placeholder="Enter email" />
 
                                 <Label for="status">Role</Label>
-                                <select id="status" v-model="form.role" class="w-full rounded border px-3 py-2">
+                                <select  style="background: white"  id="status" v-model="form.role" class="w-full rounded border px-3 py-2">
                                     <option value="user">User</option>
                                     <option value="admin">Admin</option>
                                     <option value="technician">Technician</option>
@@ -206,6 +206,7 @@ const handleFileUpload = (event: Event) => {
                                 <div class="grid gap-2" v-if="form.role !== 'user'">
                                     <Label for="password">Password</Label>
                                     <Input
+                                         style="background: white" 
                                         id="password"
                                         type="password"
                                         required
@@ -220,6 +221,7 @@ const handleFileUpload = (event: Event) => {
                                 <div class="grid gap-2" v-if="form.role !== 'user'">
                                     <Label for="password_confirmation">Confirm password</Label>
                                     <Input
+                                         style="background: white" 
                                         id="password_confirmation"
                                         type="password"
                                         required
@@ -243,7 +245,7 @@ const handleFileUpload = (event: Event) => {
                     </DialogContent>
                 </Dialog>
                 
-                <select id="status" v-model="filter" class="ml-2" style="height: 37px">
+                <select  id="status" v-model="filter" class="ml-2" style="height: 37px; background: white">
                     <option value="All">All</option>
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
@@ -267,10 +269,12 @@ const handleFileUpload = (event: Event) => {
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
                                 <Label for="machine_name">Name</Label>
-                                <Input readonly required id="machine_name" v-model="selectedItem.name" placeholder="Name" />
+                                <Input 
+                                         style="background: white"  readonly required id="machine_name" v-model="selectedItem.name" placeholder="Name" />
 
                                 <Label for="type">Email</Label>
-                                <Input readonly required id="type" v-model="selectedItem.email" placeholder="Email" />
+                                <Input 
+                                         style="background: white"  readonly required id="type" v-model="selectedItem.email" placeholder="Email" />
                             </div>
 
                             <DialogTitle class="py-10">List of Rentals</DialogTitle>

@@ -24,7 +24,8 @@ class Rental extends Model
         'hectare',
         'rentFee',
         'attachment',
-        'totalHarvest'
+        'totalHarvest',
+        'startDate'
     ];
 
     public function user()

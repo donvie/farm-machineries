@@ -207,13 +207,13 @@ onMounted(() => {
                 </Card>
 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-purple-500 text-white shadow-lg">                    <CardHeader class="text-center">
-                        <CardTitle class="text-xl opacity-80">Total number of approved fertilizer</CardTitle>
+                        <CardTitle class="text-xl opacity-80">Total number of approved fertilizer loan</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ fertilizerCount  }}</CardTitle>
                     </CardHeader>
                 </Card>
 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-red-500 text-white shadow-lg">                    <CardHeader class="text-center">
-                        <CardTitle class="text-xl opacity-80">Total number of approved cash loans</CardTitle>
+                        <CardTitle class="text-xl opacity-80">Total number of cash loan</CardTitle>
                         <CardTitle class="text-2xl font-bold">{{ cashCount }}</CardTitle>
                     </CardHeader>
                 </Card>

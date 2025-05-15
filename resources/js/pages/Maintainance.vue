@@ -34,7 +34,7 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Technician', 'Machine Name', 'Work Done', 'Expenses', 'Status', 'Maintenance Date', 'Completed Date', 'Remarks'];
+const headers = ['Id', 'Technician', 'Machine Name', 'Work Done', 'Expenses', 'Status', 'Maintenance Date', 'Completed Date', 'Work to do'];
 const form = useForm({
     user_id: null,
     machinery_id: null,
@@ -180,11 +180,11 @@ const filteredMaintainancesForTable = computed(() => {
                     <DialogContent>
                         <form @submit.prevent="addMaintainance">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Maintainance' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Status' }}</DialogTitle>
                             </DialogHeader>
                             <div class="mb-3">
                                 <Label for="user">Technician</Label>
-                                <select :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
+                                <select style="background: white" :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
                                     <option v-for="user in props.users.filter((user) => user.role === 'technician')" :key="user.id" :value="user.id">
                                         {{ user.name }}
@@ -194,7 +194,7 @@ const filteredMaintainancesForTable = computed(() => {
 
                             <div class="mb-3">
                                 <Label for="user">Machinery</Label>
-                                <select  :disabled="action === 'edit'" id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
+                                <select style="background: white"  :disabled="action === 'edit'" id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
                                     <option v-for="machinery in props.machineries" :key="machinery.id" :value="machinery.id">
                                         {{ machinery?.machine_name }} ({{ machinery?.serial }})
@@ -204,38 +204,38 @@ const filteredMaintainancesForTable = computed(() => {
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="condition">Condition</Label>
-                                <Input id="condition" v-model="form.condition" placeholder="Enter Condition" />
+                                <Input style="background: white" id="condition" v-model="form.condition" placeholder="Enter Condition" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="workDone">Work Done</Label>
-                                <Input id="workDone" v-model="form.workDone" placeholder="Enter Work Done" />
+                                <Input style="background: white" id="workDone" v-model="form.workDone" placeholder="Enter Work Done" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="expenses">Expenses</Label>
-                                <Input id="expenses" v-model="form.expenses" placeholder="Enter Expenses" />
+                                <Input style="background: white" id="expenses" v-model="form.expenses" placeholder="Enter Expenses" />
                             </div>
 
                             <Label for="year_acquired">Maintenance Date</Label>
-                            <Input required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
+                            <Input style="background: white" required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="completed_date">Completed Date</Label>
-                                <Input required type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
+                                <Input style="background: white" required type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
-                                <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                <select style="background: white" id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option value="Pending">Pending</option>
                                     <option value="Ongoing">Ongoing</option>
                                     <option value="Completed">Completed</option>
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <Label for="remarks">Remarks</Label>
-                                <Input id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
+                                <Label for="remarks">Work to do</Label>
+                                <Input style="background: white" id="remarks" v-model="form.remarks" placeholder="Enter Work to do" />
                             </div>
 
                             <DialogFooter class="mt-4 gap-2">
@@ -261,19 +261,19 @@ const filteredMaintainancesForTable = computed(() => {
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
                                 <Label for="name">Technician</Label>
-                                <Input readonly required id="name" v-model="form.user.name" placeholder="Enter machine name" />
+                                <Input style="background: white" readonly required id="name" v-model="form.user.name" placeholder="Enter machine name" />
 
                                 <Label for="machine_name">Machine Name</Label>
-                                <Input readonly required id="machine_name" v-model="form.machinery.machine_name" placeholder="Enter machine name" />
+                                <Input style="background: white" readonly required id="machine_name" v-model="form.machinery.machine_name" placeholder="Enter machine name" />
 
                                 <Label for="type">Machine Type</Label>
-                                <Input readonly required id="type" v-model="form.machinery.type" placeholder="Enter machine type" />
+                                <Input style="background: white" readonly required id="type" v-model="form.machinery.type" placeholder="Enter machine type" />
 
                                 <Label for="type">Status</Label>
-                                <Input readonly required id="type" v-model="form.status" placeholder="Enter machine type" />
+                                <Input style="background: white" readonly required id="type" v-model="form.status" placeholder="Enter machine type" />
 
-                                <Label for="type">Remarks</Label>
-                                <Input readonly required id="type" v-model="form.remarks" placeholder="Enter machine type" />
+                                <Label for="type">Work to do</Label>
+                                <Input style="background: white" readonly required id="type" v-model="form.remarks" placeholder="Enter machine type" />
                             </div>
                         </form>
                     </DialogContent>

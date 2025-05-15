@@ -174,21 +174,21 @@ const filteredMaintainancesForTable = computed(() => {
 
                             <div class="mb-3">
                                 <Label for="item">Item</Label>
-                                <Input id="item" v-model="form.item" placeholder="Item" />
+                                <Input  style="background: white"  id="item" v-model="form.item" placeholder="Item" />
                             </div>
 
                             <div class="mb-3">
                                 <Label for="unitPrice">Unit Price</Label>
-                                <Input id="unitPrice" v-model="form.unitPrice" placeholder="Unit Price" />
+                                <Input  style="background: white"  id="unitPrice" v-model="form.unitPrice" placeholder="Unit Price" />
                             </div>
 
                             <div class="mb-3">
                                 <Label for="stocks">Stocks</Label>
-                                <Input id="stocks" v-model="form.stocks" placeholder="Stocks" />
+                                <Input  style="background: white"  id="stocks" v-model="form.stocks" placeholder="Stocks" />
                             </div>
                             <div class="mb-3">
                                  <Label  for="type">Type</Label>
-                                <select id="status" v-model="form.type" class="w-full rounded border px-3 py-2">
+                                <select  style="background: white"  id="status" v-model="form.type" class="w-full rounded border px-3 py-2">
                                     <option  value="All">All</option>
                                     <option  value="Fertilizer">Fertilizer</option>
                                     <option  value="Insecticide">Insecticide</option>
@@ -224,10 +224,10 @@ const filteredMaintainancesForTable = computed(() => {
                                 <!-- <Label for="image">Upload Image</Label>
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
                                 <Label for="name">Item</Label>
-                                <Input readonly required id="name" v-model="form.item" placeholder="Enter machine name" />
+                                <Input  style="background: white"  readonly required id="name" v-model="form.item" placeholder="Enter machine name" />
 
                                 <Label for="machine_name">Stocks</Label>
-                                <Input readonly required id="machine_name" v-model="form.stocks" placeholder="Enter machine name" />
+                                <Input  style="background: white"  readonly required id="machine_name" v-model="form.stocks" placeholder="Enter machine name" />
                             </div>
                         </form>
                     </DialogContent>

@@ -270,29 +270,29 @@ const filteredMachineriesForTable = computed(() => {
                                 <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
 
                                 <Label for="machine_name">Machine Name</Label>
-                                <Input required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
+                                <Input style="background: white" required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
 
                                 <Label for="type">Brand</Label>
-                                <Input required id="type" v-model="form.brand" placeholder="Enter brand" />
+                                <Input style="background: white" required id="type" v-model="form.brand" placeholder="Enter brand" />
 
                                 <Label for="type">Serial</Label>
-                                <Input required id="serial" v-model="form.serial" placeholder="Enter Serial" />
+                                <Input style="background: white" required id="serial" v-model="form.serial" placeholder="Enter Serial" />
                                 <Label for="type">Capacity</Label>
-                                <Input required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
+                                <Input style="background: white" required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
                                 <!-- <Label for="type">Fee</Label> -->
                                 <!-- <Input required id="cost" v-model="form.costPerMachine" placeholder="Enter Fee" /> -->
                                 <!-- <Label for="type">Attachments/Accesories</Label>
                                 <Input required id="accessories" v-model="form.accessories" placeholder="Enter Attachment/Accessories" /> -->
                                 <Label for="type">Supplier</Label>
-                                <Input required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
+                                <Input style="background: white" required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
                                 <Label for="type">Branch Address</Label>
-                                <Input required id="branchAddress" v-model="form.branchAddress" placeholder="Enter branch Address" />
+                                <Input style="background: white" required id="branchAddress" v-model="form.branchAddress" placeholder="Enter branch Address" />
 
                                 <Label for="year_acquired">Year Acquired</Label>
-                                <Input required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
+                                <Input style="background: white" required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
 
                                 <Label v-if="action === 'edit'" for="status">Status</Label>
-                                <select v-if="action === 'edit'" id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                <select style="background: white" v-if="action === 'edit'" id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option disabled value="Available">Available</option>
                                     <option disabled value="In Use">In Use</option>
                                     <option disabled value="Under Maintenance">Under Maintenance</option>

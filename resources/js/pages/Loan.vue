@@ -440,11 +440,11 @@ const filteredLoansForTable = computed(() => {
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
 
-                            <p>Today's Date: {{ todayDate }}</p>
+                            <!-- <p>Today's Date: {{ todayDate }}</p> -->
                             <!-- <p>Due Date: April 14, 2025</p> -->
-                            <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, todayDate) }} days</p>
+                            <!-- <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, todayDate) }} days</p> -->
                             <!-- <p>Due Date: February 16, 2025</p> -->
-                             <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, todayDate) }} month(s)</p>
+                             <!-- <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, todayDate) }} month(s)</p> -->
 
                             <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Borrower</Label>

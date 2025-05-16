@@ -239,8 +239,8 @@ const filteredMachineriesForTable = computed(() => {
   return filteredMachineries.value.map(({ id, machine_name, brand, serial, status, year_acquired }) => ({
     id,
     machine_name,
-    serial,
     brand,
+    serial,
     status,
     year_acquired,
   }));

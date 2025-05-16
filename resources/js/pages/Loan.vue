@@ -38,7 +38,7 @@ const action = ref('');
 console.log('dadadad', props);
 const filter = ref('All');
 
-const headers = ['Id', 'Loaner', 'Status', 'Remaining Balance', 'Total Loan',  ];
+const headers = ['Id', 'Loaner', 'Status', 'Balance', 'Total Loan',  ];
 const form = useForm({
     user_id: {},
     amount: 0,
@@ -57,6 +57,45 @@ const form = useForm({
         },
     ],
     histories: [{ test: '' }],
+});
+
+const dueDate = ref("April 14, 2025");
+const todayDate = ref('May 16, 2025'); // Today's date in milliseconds
+
+// Optional: Format the today's date for display
+const formattedTodayDate = computed(() => {
+  return format(todayDate.value, 'MMMM dd, yyyy'); // Example format
+});
+
+
+const calculatePenaltyMonthsFn = computed(() => {
+  return (dueDateStr, timestampToday) => {
+    const dueDate = new Date(dueDateStr);
+    const todayDate = new Date(timestampToday);
+
+    const oneMonthAfterDue = new Date(dueDate);
+    oneMonthAfterDue.setMonth(dueDate.getMonth() + 1);
+
+    let monthDifference = (todayDate.getFullYear() - oneMonthAfterDue.getFullYear()) * 12;
+    monthDifference += todayDate.getMonth() - oneMonthAfterDue.getMonth();
+
+    return monthDifference > 0 ? monthDifference : 0;
+  };
+});
+
+const calculatePenaltyDaysFn = computed(() => {
+  return (dueDateStr, timestampToday) => {
+    const dueDate = new Date(dueDateStr);
+    const todayDate = new Date(timestampToday); // Create Date object from timestamp
+
+    const oneMonthAfterDue = new Date(dueDate);
+    oneMonthAfterDue.setMonth(dueDate.getMonth() + 1);
+
+    const differenceInMilliseconds = todayDate.getTime() - oneMonthAfterDue.getTime();
+    const differenceInDays = Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+
+    return differenceInDays > 0 ? differenceInDays : 0;
+  };
 });
 
 const formattedDate = (dateString: any, formatString: any) => {
@@ -276,12 +315,27 @@ const handleNotifySMS = async (item) => {
 };
 
 const totalAmount = computed(() => {
-    return form.loans.reduce((total, loan) => {
-        const loanAmount = loan.amount || 0;
-        const loanQty = loan.bags || 0;
-        return total + loanAmount * loanQty; // Multiply amount by qty (bags)
-    }, 0);
+    console.log('formform', form)
+  return form.loans.reduce((total, loan) => {
+    console.log('formform', form)
+    let penalty = 0;
+    const dueDate = loan.dueDate; // Assuming each loan has a dueDate
+
+    if (form.status === 'Overdue' && form.repaymentDate) {
+      if (loan.type === 'Cash') {
+        penalty = (parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, todayDate.value)) * 0.12 * loan.amount) * 2;
+      } else {
+        penalty = ((parseFloat(calculatePenaltyDaysFn.value(form.repaymentDate, todayDate.value)) * 0.12 / 365) * loan.amount) * 2;
+      }
+    }
+
+    const loanAmount = loan.amount || 0;
+    const loanQty = loan.bags || 0;
+
+    return total + (loanAmount * loanQty) + penalty;
+  }, 0);
 });
+
 
 const removeLoan = (index: number) => {
     if (form.loans.length > 1) {
@@ -385,6 +439,12 @@ const filteredLoansForTable = computed(() => {
                                 <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Billing' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
+
+                            <p>Today's Date: {{ todayDate }}</p>
+                            <!-- <p>Due Date: April 14, 2025</p> -->
+                            <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, todayDate) }} days</p>
+                            <!-- <p>Due Date: February 16, 2025</p> -->
+                             <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, todayDate) }} month(s)</p>
 
                             <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Borrower</Label>
@@ -532,6 +592,51 @@ const filteredLoansForTable = computed(() => {
                                             <Input style="background-color: white" required type="text" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
                                         </div>
 
+                                        <Label v-if="loan.type === 'Cash' && form.status === 'Overdue'" :for="'areaha-' + index">Penalty</Label>
+                                        <Input
+                                            v-if="loan.type === 'Cash' && form.status === 'Overdue'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, todayDate)) * 0.12 * loan.amount).toFixed(3)"
+                                        />
+
+                                        <Label v-if="loan.type === 'Cash' && form.status === 'Overdue'" :for="'areaha-' + index">Interest</Label>
+                                        <Input
+                                            v-if="loan.type === 'Cash' && form.status === 'Overdue'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, todayDate)) * 0.12 * loan.amount)).toFixed(3)"
+                                        />
+
+
+                                        <Label v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'" :for="'areaha-' + index">Penalty</Label>
+                                        <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, todayDate) * 0.12 / 365)).toFixed(3)"
+                                        />
+
+                                        
+                                        <Label v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'" :for="'areaha-' + index">Interest</Label>
+                                        <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, todayDate) * 0.12 / 365))).toFixed(3)"
+                                        />
                                         <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
                                             Remove
                                         </Button>
@@ -539,8 +644,8 @@ const filteredLoansForTable = computed(() => {
                                 </ul>
                             </div>
                             <div class="mb-2" v-if="action === 'edit'">
-                                <Label :for="'amount-' + index">Amount Paid</Label>
-                                <Input style="background: white"  required type="number" :id="'amount-' + index" v-model="amountPaid" placeholder="Enter Amount Paid" />
+                                <Label :for="'amountadada-' + index">Amount Paid</Label>
+                                <Input style="background: white"  required type="number" :id="'amodadaunt-' + index" v-model="amountPaid" placeholder="Enter Amount Paid" />
                             </div>
                             <div class="mt-4 text-right" v-if="action === 'add'">
                                 <Button @click="pushLoan()">Add loan</Button>
@@ -549,7 +654,7 @@ const filteredLoansForTable = computed(() => {
                             <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
 
                             <div class="mt-4">
-                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Remaining Balance: {{ 
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Balance: {{ 
                                 selectedItem.loans.reduce((total, loan) => {
                                     const loanAmount = loan.amount || 0;
                                     const loanQty = loan.bags || 0;
@@ -640,7 +745,7 @@ const filteredLoansForTable = computed(() => {
                                 :perPage="10"
                             />
                             <div class="mt-4">
-                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Remaining Balance: {{ 
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Balance: {{ 
                                 selectedItem.loans.reduce((total, loan) => {
                                     const loanAmount = loan.amount || 0;
                                     const loanQty = loan.bags || 0;

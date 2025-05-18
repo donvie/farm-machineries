@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
+import dayjs from 'dayjs'; // Make sure to install dayjs: npm install dayjs
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Rental', href: '/rental' }];
 
@@ -39,6 +40,7 @@ const headers = [
     'Lessee',
     'Operator',
     'Machine Name',
+    'Serial No.',
     'Condition after use',
     'Rent',
     // 'Other Expenses',
@@ -69,6 +71,18 @@ const form = useForm({
     remarks: '',
 });
 
+
+const todayFormatted = computed(() => dayjs().format('YYYY-MM-DD'));
+const isDateDisabled = ref(false);
+
+const validateDate = () => {
+  if (form.startDate) {
+    isDateDisabled.value = props?.rentals?.data?.map(d => d.startDate).includes(form.startDate);
+  } else {
+    isDateDisabled.value = false;
+  }
+};
+
 const filter = ref('All');
 const formattedDate = (dateString: any, formatString: any) => {
     try {
@@ -80,6 +94,8 @@ const formattedDate = (dateString: any, formatString: any) => {
 };
 
 const addRental = (e: Event) => {
+  if (!isDateDisabled.value && form.startDate) {
+
     e.preventDefault();
     console.log('Submitting form...');
 
@@ -106,7 +122,28 @@ const addRental = (e: Event) => {
             onFinish: () => closeModal(),
         });
     }
+  } else {
+    alert('Date is unavailable. Please select another work start date.');
+  }
 };
+
+// const disabledDate = (currentDate) => {
+//   if (!currentDate) {
+//     return false;
+//   }
+
+//   // Disable previous dates
+//   const today = dayjs().startOf('day');
+//   const isPast = currentDate.isBefore(today, 'day');
+//   let dates = props?.rentals?.data.map(d => d.startDate)
+//   console.log('dates', dates)
+
+//   // Disable dates present in the 'dates' array
+//   const formattedCurrentDate = currentDate.format('YYYY-MM-DD');
+//   const isExisting = dates.value.includes(formattedCurrentDate);
+
+//   return isPast || isExisting;
+// };
 
 const closeModal = () => {
     form.clearErrors();
@@ -182,6 +219,7 @@ const filteredRentalsForTable = computed(() => {
     name: rental.user?.name || '',
     operator: rental.operator?.name || '',
     machine_name: rental?.machinery?.machine_name || '',
+    serial: rental.machinery?.serial || '',
     condition: rental?.condition || '',
     rent: rental?.rent || '',
     // otherExpenses: rental?.otherExpenses || '',
@@ -191,6 +229,8 @@ const filteredRentalsForTable = computed(() => {
     remarks: rental?.remarks || '',
   }));
 });
+
+console.log('props?.rentals?.data', props?.rentals?.data)
 
 </script>
 
@@ -324,7 +364,13 @@ const filteredRentalsForTable = computed(() => {
                             
                             <div class="mb-3">
                                 <Label for="loanDate">Work start date</Label>
-                                <Input style="background: white" required type="date" id="repaymentDate" v-model="form.startDate" placeholder="Enter Work start date" />
+                                <!-- <pre>{{props?.rentals?.data.map(d => d.startDate)}}</pre> -->
+                                <Input 
+                                @change="validateDate"
+                                :min="todayFormatted"
+                                style="background: white"
+                                required
+                                type="date" id="repaymentDate" v-model="form.startDate" placeholder="Enter Work start date" />
                             </div>
 
                             <!-- <div class="mb-3">

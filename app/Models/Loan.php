@@ -19,7 +19,8 @@ class Loan extends Model
         'remarks',
         'loans',
         'histories',
-        'qty'
+        'qty',
+        'dateOfRelease'
     ];
 
     protected $casts = [

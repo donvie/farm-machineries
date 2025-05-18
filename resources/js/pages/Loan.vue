@@ -46,6 +46,7 @@ const form = useForm({
     status: 'Active',
     loanDate: null,
     repaymentDate: null,
+    dateOfRelease: null,
     remarks: '',
     loans: [
         {
@@ -59,14 +60,27 @@ const form = useForm({
     histories: [{ test: '' }],
 });
 
-const dueDate = ref("April 14, 2025");
-const todayDate = ref('May 16, 2025'); // Today's date in milliseconds
+// const dueDate = ref("April 14, 2025");
+// const todayDate = ref('May 16, 2025'); // Today's date in milliseconds
 
 // Optional: Format the today's date for display
-const formattedTodayDate = computed(() => {
-  return format(todayDate.value, 'MMMM dd, yyyy'); // Example format
+const formattedTodayDateNow = computed(() => {
+  return format(Date.now(), 'MMMM dd, yyyy'); // Example format
 });
 
+
+const calculatePenaltyMonthsFn1 = computed(() => {
+    return (date1Str, date2Str) => {
+        const date1 = new Date(date1Str);
+        const date2 = new Date(date2Str);
+
+        let months = (date2.getFullYear() - date1.getFullYear()) * 12;
+        months -= date1.getMonth();
+        months += date2.getMonth();
+
+        return months <= 0 ? 0 : months;
+        }
+});
 
 const calculatePenaltyMonthsFn = computed(() => {
   return (dueDateStr, timestampToday) => {
@@ -97,6 +111,52 @@ const calculatePenaltyDaysFn = computed(() => {
     return differenceInDays > 0 ? differenceInDays : 0;
   };
 });
+
+const calculatePenaltyDaysFn1 = computed(() => {
+  return (date1Str, date2Str) => {
+  const date1 = new Date(date1Str);
+  const date2 = new Date(date2Str);
+
+  // Calculate the difference in milliseconds
+  const differenceMs = date2.getTime() - date1.getTime();
+
+  // Convert milliseconds to days
+  const days = Math.ceil(differenceMs / (1000 * 60 * 60 * 24));
+
+  return days;
+}
+
+});
+
+
+
+// function calculatePenaltyDaysFn1(date1Str, date2Str) {
+//   const date1 = new Date(date1Str);
+//   const date2 = new Date(date2Str);
+
+//   // Calculate the difference in milliseconds
+//   const differenceMs = date2.getTime() - date1.getTime();
+
+//   // Convert milliseconds to days
+//   const days = Math.ceil(differenceMs / (1000 * 60 * 60 * 24));
+
+//   return days;
+// }
+
+// const calculatePenaltyDaysFn1 = computed(() => {
+//   return (dueDateStr, timestampToday) => {
+//     const dueDate = new Date(dueDateStr);
+//     const todayDate = new Date(timestampToday); // Create Date object from timestamp
+
+//     const oneMonthAfterDue = new Date(dueDate);
+//     oneMonthAfterDue.setMonth(dueDate.getMonth() + 1);
+
+//     const differenceInMilliseconds = todayDate.getTime() - oneMonthAfterDue.getTime();
+//     const differenceInDays = Math.floor(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+
+//     return differenceInDays > 0 ? differenceInDays : 0;
+//   };
+// });
 
 const formattedDate = (dateString: any, formatString: any) => {
     try {
@@ -281,22 +341,56 @@ const handleNotifySMS = async (item) => {
         return total + loanAmount;
     }, 0)
 
-    console.log('item', item);
+   const penalty = item.loans.reduce((total, loan) => {
+    console.log('formform', item)
+    let penalty = 0;
+    const dueDate = loan.dueDate; // Assuming each loan has a dueDate
+
+    if (item.status === 'Overdue' && item.repaymentDate) {
+      if (loan.type === 'Cash') {
+        penalty = (parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount);
+      } else {
+        penalty = ((parseFloat(calculatePenaltyDaysFn.value(item.repaymentDate, formattedTodayDateNow)) * 0.12 / 365) * loan.amount);
+      }
+    }
+
+    const loanAmount = loan.amount || 0;
+    const loanQty = loan.bags || 0;
+
+    // return total + (loanAmount * loanQty) + penalty;
+    
+    return total  + penalty;
+  }, 0);
+
+    // console.log('item', item);
+    console.log('penaltypenalty', penalty)
     try {
         const response = await axios.post('/send-email', {
             // Change route
             email: item.user.email, // Replace with dynamic email from item if needed
             subject: 'Loan Repayment Reminder',
             message: `
-            Gentle Reminder:
+            Loan Payment Reminder
 
-                This is a reminder that your loan repayment was due on ${item.repaymentDate}. We have not yet received your payment of PHP ${amount}.
+                We would like to remind you that your loan payment is now past due. The total outstanding amount is ${amount}, which includes a penalty of ${penalty} for the delay.
 
-                Please take a moment to make the payment at your earliest convenience.
+                We kindly ask that you settle the balance promptly to prevent any additional charges. If you have any questions or need assistance, feel free to reach out.
 
-                If you have already made the payment, please disregard this message. If you have any questions or need to discuss your account, please don't hesitate to contact us.
+                Thank you for your attention to this matter.
 
-                Thank you for your prompt attention to this matter.`,
+                Sincerely,
+                CMPC Management
+            `
+            // message: `
+            // Gentle Reminder:
+
+            //     This is a reminder that your loan repayment was due on ${item.repaymentDate}. We have not yet received your payment of PHP ${amount}.
+
+            //     Please take a moment to make the payment at your earliest convenience.
+
+            //     If you have already made the payment, please disregard this message. If you have any questions or need to discuss your account, please don't hesitate to contact us.
+
+            //     Thank you for your prompt attention to this matter.`,
             
         });
         console.log('response', response.data);
@@ -310,7 +404,7 @@ const handleNotifySMS = async (item) => {
         console.log('error', error);
         alert('Error sending email.');
     }
-    // alert('Sending SMS...');
+    alert('Sending SMS...');
 
 };
 
@@ -323,9 +417,9 @@ const totalAmount = computed(() => {
 
     if (form.status === 'Overdue' && form.repaymentDate) {
       if (loan.type === 'Cash') {
-        penalty = (parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, todayDate.value)) * 0.12 * loan.amount) * 2;
+        penalty = (parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount) + (parseFloat(calculatePenaltyMonthsFn1.value(form.repaymentDate, form.dateOfRelease)) * 0.12 * loan.amount);
       } else {
-        penalty = ((parseFloat(calculatePenaltyDaysFn.value(form.repaymentDate, todayDate.value)) * 0.12 / 365) * loan.amount) * 2;
+        penalty = ((parseFloat(calculatePenaltyDaysFn.value(form.repaymentDate, formattedTodayDateNow)) * 0.12 / 365) * loan.amount) + ((parseFloat(calculatePenaltyDaysFn1.value(form.repaymentDate, form.dateOfRelease)) * 0.12 / 365) * loan.amount);
       }
     }
 
@@ -440,11 +534,9 @@ const filteredLoansForTable = computed(() => {
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
 
-                            <!-- <p>Today's Date: {{ todayDate }}</p> -->
-                            <!-- <p>Due Date: April 14, 2025</p> -->
-                            <!-- <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, todayDate) }} days</p> -->
-                            <!-- <p>Due Date: February 16, 2025</p> -->
-                             <!-- <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, todayDate) }} month(s)</p> -->
+                            <!-- <p>Today's Date: {{ formattedTodayDateNow }}</p>
+                            <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) }} days</p>
+                            <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow) }} month(s)</p> -->
 
                             <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Borrower</Label>
@@ -470,8 +562,12 @@ const filteredLoansForTable = computed(() => {
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <Label for="loanDate">Date of Release</Label>
+                                <Input style="background: white"  required type="date" id="dateOfRelease" v-model="form.dateOfRelease" placeholder="Enter date of release" />
+                            </div>
+                            <div class="mb-3">
                                 <Label for="loanDate">Due Date</Label>
-                                <Input style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repaymentDate" />
+                                <Input style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
                             </div>
                             <div class="mt-4">
                                 <h3 class="text-lg font-semibold">Loan Details:</h3>
@@ -600,19 +696,31 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, todayDate)) * 0.12 * loan.amount).toFixed(3)"
+                                            :placeholder="(parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount).toFixed(3)"
                                         />
 
-                                        <Label v-if="loan.type === 'Cash' && form.status === 'Overdue'" :for="'areaha-' + index">Interest</Label>
+
+                                        <Label v-if="loan.type === 'Cash'" :for="'areaha-' + index">Interest</Label>
+                                        <!-- <div v-if="loan.type === 'Cash'">{{calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)}}</div> -->
                                         <Input
-                                            v-if="loan.type === 'Cash' && form.status === 'Overdue'"
+                                            v-if="loan.type === 'Cash'"
                                             readonly
                                             style="background: white" 
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, todayDate)) * 0.12 * loan.amount)).toFixed(3)"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.12 * loan.amount)).toFixed(3)"
                                         />
+
+                                        <!-- <Input
+                                            v-if="loan.type === 'Cash'  && action === 'edit'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount)).toFixed(3)"
+                                        /> -->
 
 
                                         <Label v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'" :for="'areaha-' + index">Penalty</Label>
@@ -623,21 +731,31 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, todayDate) * 0.12 / 365)).toFixed(3)"
+                                            :placeholder="((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) * 0.12 / 365)).toFixed(3)"
                                         />
 
                                         
-                                        <Label v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'" :for="'areaha-' + index">Interest</Label>
+                                        <Label v-if="loan.type === 'Loan Fertilizer'" :for="'areaha-' + index">Interest</Label>
+                                        <!-- <div v-if="loan.type === 'Loan Fertilizer'">{{calculatePenaltyDaysFn1(form.dateOfRelease, form.repaymentDate)}}</div> -->
                                         <Input
                                             readonly
-                                            v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'"
+                                            v-if="loan.type === 'Loan Fertilizer'"
                                             style="background: white" 
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, todayDate) * 0.12 / 365))).toFixed(3)"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn1(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(3)"
                                         />
-                                        <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 text-white" @click="removeLoan(index)">
+                                        <!-- <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer' && action === 'edit'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) * 0.12 / 365))).toFixed(3)"
+                                        /> -->
+                                        <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 mt-3 text-white" @click="removeLoan(index)">
                                             Remove
                                         </Button>
                                     </li>

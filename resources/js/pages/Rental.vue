@@ -111,6 +111,8 @@ const addRental = (e: Event) => {
             onFinish: () => closeModal(),
         });
     } else {
+        if (form.status === 'Active') {
+            
         router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
 
         router.post(route('rental.store'), form, {
@@ -121,6 +123,7 @@ const addRental = (e: Event) => {
             onError: (errors) => console.error('Form errors:', errors),
             onFinish: () => closeModal(),
         });
+        }
     }
   } else {
     alert('Date is unavailable. Please select another work start date.');

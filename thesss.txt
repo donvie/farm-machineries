@@ -1,0 +1,349 @@
+1. php artisan make:migration create_machineries_table
+
+
+2. Then, define the table schema in the migration file (database/migrations/xxxx_xx_xx_xxxxxx_create_machineries_table.php):
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up()
+    {
+        Schema::create('machineries', function (Blueprint $table) {
+            $table->id();
+            $table->string('machine_name');
+            $table->string('type');
+            $table->string('unique_id')->unique();
+            $table->string('brand');
+            $table->integer('year_acquired');
+            $table->string('capacity');
+            $table->string('serial_no')->nullable();
+            $table->integer('stocks');
+            $table->enum('status', ['Available', 'In Use', 'Under Maintenance'])->default('Available');
+            $table->date('last_maintenance_date')->nullable();
+            $table->date('next_scheduled_maintenance')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    public function down()
+    {
+        Schema::dropIfExists('machineries');
+    }
+};
+
+3. php artisan migrate
+4. php artisan make:model Machinery
+5. namespace App\Models; Modify app/Models/Machinery.php:
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Machinery extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name', 
+    ];
+}
+6. php artisan make:controller MachineryController --api
+7. Modify app/Http/Controllers/MachineryController.php:
+namespace App\Http\Controllers;
+
+use App\Models\Machinery;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+
+class MachineryController extends Controller
+{
+    public function index()
+    {
+        $machineries = Machinery::paginate(10); // Paginated data
+        return Inertia::render('Machinery', ['machineries' => $machineries]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'machine_name' => 'required|string',
+            'type' => 'required|string',
+            'unique_id' => 'required|string|unique:machineries',
+            'brand' => 'required|string',
+            'year_acquired' => 'required|integer',
+            'capacity' => 'required|string',
+            'serial_no' => 'nullable|string',
+            'stocks' => 'required|integer',
+            'status' => 'required|in:Available,In Use,Under Maintenance',
+            'last_maintenance_date' => 'nullable|date',
+            'next_scheduled_maintenance' => 'nullable|date',
+        ]);
+
+        Machinery::create($request->all());
+
+        return back()->with('success', 'Machinery added successfully!');
+    }
+
+    public function update(Request $request, Machinery $machinery)
+    {
+        $request->validate([
+            'status' => 'required|in:Available,In Use,Under Maintenance',
+            'next_scheduled_maintenance' => 'nullable|date',
+        ]);
+
+        $machinery->update($request->all());
+
+        return back()->with('success', 'Machinery updated successfully!');
+    }
+
+    public function destroy(Machinery $machinery)
+    {
+        $machinery->delete();
+        return back()->with('success', 'Machinery deleted successfully!');
+    }
+}
+8. Modify routes/web.php:
+
+use App\Http\Controllers\MachineryController;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/machinery', [MachineryController::class, 'index'])->name('machinery');
+    Route::post('/machinery', [MachineryController::class, 'store']);
+    Route::put('/machinery/{machinery}', [MachineryController::class, 'update']);
+    Route::delete('/machinery/{machinery}', [MachineryController::class, 'destroy']);
+});
+
+
+
+Step 1: Rollback the Migration
+1. php artisan migrate:rollback --step=1
+2. php artisan migrate
+
+
+==========================================================================
+
+1. Add role Column to Users Table
+
+php artisan make:migration add_role_to_users_table --table=users
+
+2.
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration {
+    public function up(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('role')->default('user'); // Default role is 'user'
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('role');
+        });
+    }
+};
+3. php artisan migrate
+4. Update the User Model
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'role', // Add role here
+    ];
+}
+5. Update Registration Controller
+
+public function store(Request $request): RedirectResponse
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+        'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        'role' => 'required|string|in:user,admin', // Validate role
+    ]);
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'role' => $request->role, // Save role
+    ]);
+
+    event(new Registered($user));
+
+    Auth::login($user);
+
+    return to_route('dashboard');
+}
+6. Modify Frontend (Vue)
+
+<script setup>
+import { ref } from 'vue';
+import { useForm } from '@inertiajs/vue3';
+
+const form = useForm({
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    role: 'user', // Default role
+});
+
+const submit = () => {
+    form.post(route('register'));
+};
+</script>
+
+<template>
+    <form @submit.prevent="submit">
+        <input v-model="form.name" type="text" placeholder="Name" required />
+        <input v-model="form.email" type="email" placeholder="Email" required />
+        <input v-model="form.password" type="password" placeholder="Password" required />
+        <input v-model="form.password_confirmation" type="password" placeholder="Confirm Password" required />
+
+        <select v-model="form.role" required>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select>
+
+        <button type="submit">Register</button>
+    </form>
+</template>
+
+7.  Ensure Role is Available in Inertia Shared Data
+public function share(Request $request): array
+{
+    return array_merge(parent::share($request), [
+        'auth' => [
+            'user' => $request->user() ? [
+                'id' => $request->user()->id,
+                'name' => $request->user()->name,
+                'email' => $request->user()->email,
+                'role' => $request->user()->role, // Add role
+            ] : null,
+        ],
+    ]);
+}
+
+8. Protect Routes Based on Role (Optional)
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DashboardController;
+
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::middleware('can:admin')->group(function () {
+        Route::get('/admin', function () {
+            return 'Welcome Admin!';
+        })->name('admin.dashboard');
+    });
+});
+9. 
+use Illuminate\Support\Facades\Gate;
+
+public function boot()
+{
+    Gate::define('admin', function ($user) {
+        return $user->role === 'admin';
+    });
+}
+
+
+
+
+
+
+
+
+
+================
+Add new fields
+
+
+php artisan make:migration add_remarks_to_loans_table
+
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('loans', function (Blueprint $table) {
+            if (!Schema::hasColumn('loans', 'remarks')) {
+                $table->text('remarks')->nullable()->after('status'); // ✅ Add remarks column
+            }
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('loans', function (Blueprint $table) {
+            if (Schema::hasColumn('loans', 'remarks')) {
+                $table->dropColumn('remarks'); // ✅ Remove remarks column if it exists
+            }
+        });
+    }
+};
+
+
+
+
+
+===================
+Machinery Management
+===================
+machineryName
+type
+status
+yearAcquired
+lastMaintenanceDate
+nextScheduleMaintainanceDate
+
+===============
+Rental Management
+===============
+	
+===============
+Loan Management
+===============
+User Created
+user
+amount,
+purpose
+loadDate
+repaymentDate
+status Active, Paid, Overdue
+
+====================
+Maintenance Management 
+===================
+machinery
+technician
+status
+remarks

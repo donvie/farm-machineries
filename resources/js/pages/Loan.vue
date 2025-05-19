@@ -683,19 +683,36 @@ const generatePDF = (item: any) => {
             { text: '\nLoan Details', style: 'subheader' },
             {
                 table: {
-                    widths: ['*', '*', '*', '*'],
+                    widths: loan.type === 'Cash' ? ['*', '*', '*', '*', '*'] : ['*', '*', '*', '*', '*', '*'],
                     body: [
-                        [
+                        loan.type === 'Cash' ? [
+                            { text: 'Loan Type', bold: true },
+                            { text: `${ loan.type === 'Cash' ? 'Purpose' : 'Bags'}`, bold: true },
+                            { text: 'Amount (PHP)', bold: true },
+                            { text: 'Interest', bold: true },
+                            { text: 'Penalty', bold: true }
+                        ] : [
                             { text: 'Loan Type', bold: true },
                             { text: 'Item Name', bold: true },
-                            { text: 'Bags', bold: true },
-                            { text: 'Amount (PHP)', bold: true }
+                            { text: `${ loan.type === 'Cash' ? 'Purpose' : 'Bags'}`, bold: true },
+                            { text: 'Amount (PHP)', bold: true },
+                            { text: 'Interest', bold: true },
+                            { text: 'Penalty', bold: true }
                         ],
+                        loan.type === 'Cash' ? 
                         [
                             loan.type,
+                            loan.type === 'Cash' ? loan.purpose : loan.bags,
+                            `₱${parseInt(loan.amount).toFixed(2)}`  || 0,
+                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount)).toFixed(3) || 0,
+                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value)).toFixed(3)  || 0
+                        ] : [
+                            loan.type,
                             loan.purpose?.item || 'N/A',
-                            loan.bags,
-                            `₱${loan.amount.toFixed(2)}`
+                            loan.type === 'Cash' ? loan.purpose : loan.bags,
+                            `₱${parseInt(loan.amount).toFixed(2)}`  || 0,
+                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365))).toFixed(2)  || 0,
+                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value))).toFixed(2)  || 0
                         ]
                     ]
                 }
@@ -703,8 +720,11 @@ const generatePDF = (item: any) => {
             { text: '\nSummary', style: 'subheader' },
             {
                 ul: [
-                    `Total Loan: ₱${selectedItem.value.amount || loan.amount}`,
-                    // `Balance: ${selectedItem.value.purpose || 'N/A'}`,
+                    `Total Loan: ₱${totalAmount.value.toFixed(2)}`,
+                    `Balance:  ${ (totalAmount.value - selectedItem.value.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0)).toFixed(2)}`,
                     // `Status: ${selectedItem.value.status}`,
                 ]
             },

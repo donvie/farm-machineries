@@ -654,20 +654,70 @@ const pushLoan = (index: number) => {
 
 const generatePDF = (item: any) => {
     console.log('selectedItem.value', selectedItem.value);
+    const user = selectedItem.value.user;
+    const loan = selectedItem.value.loans[0]; // Assuming there's at least one loan entry
+
     const docDefinition = {
         content: [
-            { text: 'Receipt', style: 'header' },
-            // { text: `Machine: ${selectedItem.value.machinery?.machine_name}`, style: 'subheader' },
-            { text: 'Thank you!', style: 'footer' },
+            { text: 'Loan Receipt', style: 'header', alignment: 'center' },
+            { text: '\nBorrower Information', style: 'subheader' },
+            {
+                columns: [
+                    {
+                        width: '50%',
+                        stack: [
+                            { text: `Name: ${user.name}` },
+                            { text: `Email: ${user.email}` },
+                        ],
+                    },
+                    {
+                        width: '50%',
+                        stack: [
+                            { text: `Date of Release: ${selectedItem.value.dateOfRelease}` },
+                            { text: `Repayment Date: ${selectedItem.value.repaymentDate}` },
+                            { text: `Status: ${selectedItem.value.status}` },
+                        ],
+                    }
+                ]
+            },
+            { text: '\nLoan Details', style: 'subheader' },
+            {
+                table: {
+                    widths: ['*', '*', '*', '*'],
+                    body: [
+                        [
+                            { text: 'Loan Type', bold: true },
+                            { text: 'Item Name', bold: true },
+                            { text: 'Bags', bold: true },
+                            { text: 'Amount (PHP)', bold: true }
+                        ],
+                        [
+                            loan.type,
+                            loan.purpose?.item || 'N/A',
+                            loan.bags,
+                            `₱${loan.amount.toFixed(2)}`
+                        ]
+                    ]
+                }
+            },
+            { text: '\nSummary', style: 'subheader' },
+            {
+                ul: [
+                    `Total Loan: ₱${selectedItem.value.amount || loan.amount}`,
+                    // `Balance: ${selectedItem.value.purpose || 'N/A'}`,
+                    // `Status: ${selectedItem.value.status}`,
+                ]
+            },
+            { text: '\nThank you for availing the loan service.', style: 'footer' }
         ],
         styles: {
-            header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-            subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
-            footer: { fontSize: 12, italics: true, margin: [0, 10, 0, 0] },
-        },
+            header: { fontSize: 20, bold: true, margin: [0, 0, 0, 10] },
+            subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
+            footer: { fontSize: 12, italics: true, alignment: 'center', margin: [0, 20, 0, 0] },
+        }
     };
 
-    pdfMake.createPdf(docDefinition).download('receipt.pdf');
+    pdfMake.createPdf(docDefinition).download('loan-receipt.pdf');
 };
 
 

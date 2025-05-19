@@ -100,6 +100,11 @@ const addRental = (e: Event) => {
     console.log('Submitting form...');
 
     if (form.id) {
+        if (form.status === 'Active') {
+            
+            router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
+        }
+
         if (form.status === 'Returned') {
             form.completedDate = format(new Date(), 'yyyy-MM-dd');
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
@@ -110,10 +115,10 @@ const addRental = (e: Event) => {
             onError: (errors) => console.error('Form errors:', errors),
             onFinish: () => closeModal(),
         });
+
+
+
     } else {
-        if (form.status === 'Active') {
-            
-        router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
 
         router.post(route('rental.store'), form, {
             preserveScroll: true,
@@ -123,7 +128,6 @@ const addRental = (e: Event) => {
             onError: (errors) => console.error('Form errors:', errors),
             onFinish: () => closeModal(),
         });
-        }
     }
   } else {
     alert('Date is unavailable. Please select another work start date.');

@@ -129,7 +129,7 @@ import { Head, Link } from '@inertiajs/vue3';
                     </svg> -->
 
                     <img
-                        src="/images/image.png"
+                        src="/images/image1.png"
                         alt="Welcome Image"
                         class="absolute inset-0 h-full w-full rounded-t-lg shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-r-lg lg:rounded-t-none"
                     />

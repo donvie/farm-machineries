@@ -13,7 +13,7 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img src="/images/image.png" alt="Welcome Image" />
+    <img src="/images/image1.png" alt="Welcome Image" />
     <!-- <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
         <circle cx="50" cy="50" r="45" stroke="green" stroke-width="4" fill="lightgreen" />
 

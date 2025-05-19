@@ -196,7 +196,7 @@ const filteredMaintainancesForTable = computed(() => {
                                 <Label for="user">Machinery</Label>
                                 <select style="background: white"  :disabled="action === 'edit'" id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
-                                    <option v-for="machinery in props.machineries" :key="machinery.id" :value="machinery.id">
+                                    <option v-for="machinery in props.machineries.filter(d => d.status === 'Available')" :key="machinery.id" :value="machinery.id">
                                         {{ machinery?.machine_name }} ({{ machinery?.serial }})
                                     </option>
                                 </select>

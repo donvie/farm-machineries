@@ -53,7 +53,7 @@ const form = useForm({
     user_id: null,
     operator_id: null,
     machinery_id: null,
-    status: 'Active',
+    status: 'Pending',
     attachment: '',
     rent: '',
     otherExpenses: '',
@@ -258,6 +258,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                              -->
                             <div class="mb-3">
                                 <Label for="user">Lessee</Label>
+                                <!-- <pre>{{props.users.find(t => t.role === 'technician')}}</pre> -->
                                 <select style="background: white" :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a user</option>
                                     <option v-for="user in props.users" :key="user.id" :value="user.id">
@@ -270,7 +271,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Label for="user">Operator</Label>
                                 <select style="background: white" :disabled="action === 'edit'" id="user" v-model="form.operator_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a operator</option>
-                                    <option v-for="user in props.users" :key="user.id" :value="user.id">
+                                    <option v-for="user in props.users.filter(t => t.role === 'technician')" :key="user.id" :value="user.id">
                                         {{ user.name }}
                                     </option>
                                 </select>
@@ -356,6 +357,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                    <option value="Pending">Pending</option>
                                     <option value="Active">Active</option>
                                     <option value="Returned">Returned</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->

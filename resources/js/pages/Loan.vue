@@ -434,39 +434,127 @@ const handleView = (item: any) => {
     isDialogViewOpen.value = true;
 };
 
-const handleNotifySMS = async (item) => {
-    const amount = item.loans.reduce((total, loan) => {
-        const loanAmount = loan.amount || 0;
-        const loanQty = loan.bags || 0;
-        return total + loanAmount * loanQty; // Multiply amount by qty (bags)
-    }, 0) - item.histories.reduce((total, loan) => {
-        const loanAmount = loan.amountPaid || 0;
-        return total + loanAmount;
-    }, 0)
-
-   const penalty = item.loans.reduce((total, loan) => {
-    console.log('formform', item)
+const totalPenalty = computed(() => {
+    console.log('formform', form)
+  return form.loans.reduce((total, loan) => {
+    console.log('formform', form)
     let penalty = 0;
+    let interest = 0;
     const dueDate = loan.dueDate; // Assuming each loan has a dueDate
 
-    if (item.status === 'Overdue' && item.repaymentDate) {
+    // if (form.status === 'Overdue' && form.repaymentDate) {
       if (loan.type === 'Cash') {
-        penalty = (parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount);
+        // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+        penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
       } else {
-        penalty = ((parseFloat(calculatePenaltyDaysFn.value(item.repaymentDate, formattedTodayDateNow)) * 0.12 / 365) * loan.amount);
+        // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+        penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
       }
+    // }
+
+    if (loan.type === 'Cash') {
+        interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+    // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+    } else {
+        interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+    // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
     }
+
+    console.log('penaltypenalty', penalty)
+    console.log('interestinterest', interest)
+
 
     const loanAmount = loan.amount || 0;
     const loanQty = loan.bags || 0;
 
-    // return total + (loanAmount * loanQty) + penalty;
-    
-    return total  + penalty;
+    return total + penalty;
+  }, 0);
+});
+
+
+const handleNotifySMS = async (item) => {
+    // console.log('itdadm', item);
+    // selectedItem.value = item;
+    // action.value = 'edit';
+    // isDialogOpen.value = true;
+    // Object.keys(item).forEach((key) => {
+    //     form[key] = item[key] ?? '';
+    // });
+    const totalAmount = item.loans.reduce((total, loan) => {
+        console.log('formform', item)
+        let penalty = 0;
+        let interest = 0;
+        const dueDate = loan.dueDate; // Assuming each loan has a dueDate
+
+        if (item.status === 'Overdue' && item.repaymentDate) {
+        if (loan.type === 'Cash') {
+            // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount))
+            penalty = (parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow.value))
+        } else {
+            // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)))
+            penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow.value))
+        }
+        }
+
+        if (loan.type === 'Cash') {
+            interest = ((parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount))
+        // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, itemattedTodayDateNow.value))
+        } else {
+            interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)))
+        // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, itemattedTodayDateNow.value))
+        }
+
+        console.log('penaltypenalty', penalty)
+        console.log('interestinterest', interest)
+
+
+        const loanAmount = loan.amount || 0;
+        const loanQty = loan.bags || 0;
+
+        return total + (loanAmount * loanQty) + penalty + interest;
+    }, 0);
+
+
+    const amount = totalAmount - item.histories.reduce((total, loan) => {
+        const loanAmount = loan.amountPaid || 0;
+        return total + loanAmount;
+    }, 0)
+
+    const penalty = item.loans.reduce((total, loan) => {
+    console.log('itemitem', item)
+    let penalty = 0;
+    let interest = 0;
+    const dueDate = loan.dueDate; // Assuming each loan has a dueDate
+
+    // if (item.status === 'Overdue' && item.repaymentDate) {
+      if (loan.type === 'Cash') {
+        // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount))
+        penalty = (parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow.value))
+      } else {
+        // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)))
+        penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, formattedTodayDateNow.value))
+      }
+    // }
+
+    if (loan.type === 'Cash') {
+        interest = ((parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount))
+    // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(item.dateOfRelease, item.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, itemattedTodayDateNow.value))
+    } else {
+        interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)))
+    // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(item.dateOfRelease, item.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(item.repaymentDate, itemattedTodayDateNow.value))
+    }
+
+
+    const loanAmount = loan.amount || 0;
+    const loanQty = loan.bags || 0;
+
+    return total + penalty;
   }, 0);
 
-    // console.log('item', item);
     console.log('penaltypenalty', penalty)
+    console.log('amountamount', amount)
+
+    // console.log('item', item);
     try {
         const response = await axios.post('/send-email', {
             // Change route
@@ -475,7 +563,7 @@ const handleNotifySMS = async (item) => {
             message: `
             Loan Payment Reminder
 
-                We would like to remind you that your loan payment is now past due. The total outstanding amount is ${amount}, which includes a penalty of ${penalty} for the delay.
+                We would like to remind you that your loan payment is now past due. The total outstanding amount is ${amount.toFixed(2)}, which includes a penalty of ${penalty.toFixed(2)} for the delay.
 
                 We kindly ask that you settle the balance promptly to prevent any additional charges. If you have any questions or need assistance, feel free to reach out.
 
@@ -521,20 +609,20 @@ const totalAmount = computed(() => {
 
     if (form.status === 'Overdue' && form.repaymentDate) {
       if (loan.type === 'Cash') {
-        interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+        // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
         penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
-        // ((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)).toFixed(3)
-        // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * (parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)));
       } else {
-        console.log('111', (loan.purpose.unitPrice * loan.bags))
-        console.log('2222', (calculatePenaltyDaysFn1.value(form.dateOfRelease, form.repaymentDate)))
-        console.log('333', calculatePenaltyDaysFn.value(form.repaymentDate, formattedTodayDateNow.value))
-         interest = (((loan.purpose.unitPrice * loan.bags) * calculatePenaltyDaysFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.12 / 365)
-        // interest =  (((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn1.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2)
-        // penalty (((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn1(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow)).toFixed(2)
-        // interest = (loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn1.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365);
-        penalty = (((loan.purpose.unitPrice * loan.bags) * calculatePenaltyDaysFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.12 / 365) * calculatePenaltyDaysFn.value(form.repaymentDate, formattedTodayDateNow.value)
+        // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+        penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
       }
+    }
+
+    if (loan.type === 'Cash') {
+        interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+    // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+    } else {
+        interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+    // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
     }
 
     console.log('penaltypenalty', penalty)
@@ -596,8 +684,38 @@ const filteredLoans = computed(() => {
 const filteredLoansForTable = computed(() => {
   return filteredLoans.value.map((loan) => {
     // Calculate the total amount for the current loan object
-    const totalAmount = loan.loans.reduce((sum, singleLoan) => {
-      return sum + (singleLoan.amount * singleLoan.bags);
+    const totalAmount = loan.loans.reduce((total, loan) => {
+        console.log('formform', form)
+        let penalty = 0;
+        let interest = 0;
+        const dueDate = loan.dueDate; // Assuming each loan has a dueDate
+
+        if (form.status === 'Overdue' && form.repaymentDate) {
+        if (loan.type === 'Cash') {
+            // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+            penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+        } else {
+            // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+            penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+        }
+        }
+
+        if (loan.type === 'Cash') {
+            interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
+        // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+        } else {
+            interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
+        // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+        }
+
+        console.log('penaltypenalty', penalty)
+        console.log('interestinterest', interest)
+
+
+        const loanAmount = loan.amount || 0;
+        const loanQty = loan.bags || 0;
+
+        return total + (loanAmount * loanQty) + penalty + interest;
     }, 0);
 
     // const remainingBalance =  loan.loans.reduce((total, loan) => {
@@ -626,8 +744,8 @@ const filteredLoansForTable = computed(() => {
       id: loan.id,
       name: loan.user?.name,
       status: loan.status,
-      remainingBalance: totalAmount - remainingBalance1,
-      totalAmount: totalAmount, // Assign the calculated totalAmount
+      remainingBalance: (totalAmount - remainingBalance1).toFixed(2),
+      totalAmount: totalAmount.toFixed(2), // Assign the calculated totalAmount
     //   repaymentDate: loan.repaymentDate,
     //   created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
     };
@@ -897,16 +1015,12 @@ const filteredLoansForTable = computed(() => {
                             <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
 
                             <div class="mt-4">
-                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Balance: {{ 
-                                selectedItem.loans.reduce((total, loan) => {
-                                    const loanAmount = loan.amount || 0;
-                                    const loanQty = loan.bags || 0;
-                                    return total + loanAmount * loanQty; // Multiply amount by qty (bags)
-                                }, 0) - selectedItem.histories.reduce((total, loan) => {
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
+                                    (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0) }}</h3>
-                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
+                                }, 0)).toFixed(2) }}</h3>
                             </div>
 
                             <h3 v-if="action === 'edit' && selectedItem.histories" class="mt-8 text-lg font-semibold">Payment History</h3>
@@ -988,7 +1102,8 @@ const filteredLoansForTable = computed(() => {
                                 :perPage="10"
                             />
                             <div class="mt-4">
-                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-xs font-semibold">Balance: {{ 
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
                                 selectedItem.loans.reduce((total, loan) => {
                                     const loanAmount = loan.amount || 0;
                                     const loanQty = loan.bags || 0;
@@ -997,7 +1112,6 @@ const filteredLoansForTable = computed(() => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
                                 }, 0) }}</h3>
-                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
                             </div>
                         </form>
                     </DialogContent>

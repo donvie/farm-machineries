@@ -70,6 +70,11 @@ const addMaintainance = (e: Event) => {
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
         }
 
+        if (form.status === 'Ongoing') {
+            
+        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintenance' });
+        }
+
         router.patch(route('maintainance.update', form.id), form, {
             preserveScroll: true,
             onSuccess: () => closeModal(),
@@ -77,7 +82,7 @@ const addMaintainance = (e: Event) => {
             onFinish: () => closeModal(),
         });
     } else {
-        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintenance' });
+        // router.patch(route('machinery.update', form.machinery_id), { status: 'Pending' });
 
         router.post(route('maintainance.store'), form, {
             preserveScroll: true,

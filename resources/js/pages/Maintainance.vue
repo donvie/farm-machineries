@@ -223,11 +223,11 @@ const filteredMaintainancesForTable = computed(() => {
                             </div>
 
                             <Label for="year_acquired">Maintenance Date</Label>
-                            <Input style="background: white" required type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
+                            <Input style="background: white" type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="completed_date">Completed Date</Label>
-                                <Input style="background: white" required type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
+                                <Input style="background: white" type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">

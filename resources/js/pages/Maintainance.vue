@@ -41,6 +41,7 @@ const form = useForm({
     status: 'Pending',
     // completed_date: null,
     remarks: '',
+    sourceOfFund: '',
     condition: '',
     workDone: '',
     expenses: '',
@@ -70,7 +71,7 @@ const addMaintainance = (e: Event) => {
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
         }
 
-        if (form.status === 'Ongoing') {
+        if (form.status === 'Under Maintenance') {
             
         router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintenance' });
         }
@@ -187,15 +188,6 @@ const filteredMaintainancesForTable = computed(() => {
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Status' }}</DialogTitle>
                             </DialogHeader>
-                            <div class="mb-3">
-                                <Label for="user">Technician</Label>
-                                <select style="background: white" :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
-                                    <option disabled value="">Select a user</option>
-                                    <option v-for="user in props.users.filter((user) => user.role === 'technician')" :key="user.id" :value="user.id">
-                                        {{ user.name }}
-                                    </option>
-                                </select>
-                            </div>
 
                             <div class="mb-3">
                                 <Label for="user">Machinery</Label>
@@ -206,10 +198,24 @@ const filteredMaintainancesForTable = computed(() => {
                                     </option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <Label for="user">Technician</Label>
+                                <select style="background: white" :disabled="action === 'edit'" id="user" v-model="form.user_id" class="w-full rounded border px-3 py-2">
+                                    <option disabled value="">Select a user</option>
+                                    <option v-for="user in props.users.filter((user) => user.role === 'technician')" :key="user.id" :value="user.id">
+                                        {{ user.name }}
+                                    </option>
+                                </select>
+                            </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="condition">Condition</Label>
                                 <Input style="background: white" id="condition" v-model="form.condition" placeholder="Enter Condition" />
+                            </div>
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="workDone">Source of fund</Label>
+                                <Input style="background: white" id="workDone" v-model="form.sourceOfFund" placeholder="Enter Source of fund" />
                             </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
@@ -234,7 +240,7 @@ const filteredMaintainancesForTable = computed(() => {
                                 <Label for="status">Status</Label>
                                 <select style="background: white" id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option value="Pending">Pending</option>
-                                    <option value="Ongoing">Ongoing</option>
+                                    <option value="Under Maintenance">Under Maintenance</option>
                                     <option value="Completed">Completed</option>
                                 </select>
                             </div>
@@ -285,7 +291,7 @@ const filteredMaintainancesForTable = computed(() => {
                 </Dialog>
                 <select id="status" v-model="filter" class="ml-2" style="height: 37px">
                     <option value="All">All</option>
-                    <option value="Ongoing">Ongoing</option>
+                    <option value="Under Maintenance">Under Maintenance</option>
                     <option value="Pending">Pending</option>
                     <option value="Completed">Completed</option>
                 </select>

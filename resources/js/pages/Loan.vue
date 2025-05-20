@@ -38,7 +38,7 @@ const action = ref('');
 console.log('dadadad', props);
 const filter = ref('All');
 
-const headers = ['Id', 'Loaner', 'Status', 'Balance', 'Total Loan',  ];
+const headers = ['Id', 'Borrower', 'Status', 'Balance', 'Total Loan',  ];
 const form = useForm({
     user_id: {},
     amount: 0,
@@ -46,6 +46,8 @@ const form = useForm({
     status: 'Active',
     loanDate: null,
     repaymentDate: null,
+    isFullPayment: '',
+    loanGrantedDate: '',
     dateOfRelease: null,
     remarks: '',
     loans: [
@@ -341,6 +343,7 @@ const addLoan = (e: Event) => {
         form.loans = [];
       }
     }
+
     console.log('form.histories', form.histories);
 
     if (typeof form.histories === 'string') {
@@ -359,6 +362,17 @@ const addLoan = (e: Event) => {
       date: format(new Date(), 'yyyy-MM-dd'),
       status: form.status,
     });
+
+
+
+    if (totalAmount.value - selectedItem.value.histories.reduce((total, loan) => {
+                            const loanAmount = loan.amountPaid || 0;
+                            return total + loanAmount;
+                        }, 0) <= 0) {
+                            form.status = "Paid"
+    }
+
+
     router.patch(route('loan.update', form.id), form, {
       preserveScroll: true,
       onSuccess: () => {
@@ -563,14 +577,11 @@ const handleNotifySMS = async (item) => {
             message: `
             Loan Payment Reminder
 
-                We would like to remind you that your loan payment is now past due. The total outstanding amount is ${amount.toFixed(2)}, which includes a penalty of ${penalty.toFixed(2)} for the delay.
+                We would like to remind you that your loan payment is now past due. The total outstanding amount is ${amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,').replace(/\d(?=(\d{3})+\.)/g, '$&,')}, which includes a penalty of ${penalty.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} for the delay.
 
                 We kindly ask that you settle the balance promptly to prevent any additional charges. If you have any questions or need assistance, feel free to reach out.
 
                 Thank you for your attention to this matter.
-
-                Sincerely,
-                CMPC Management
             `
             // message: `
             // Gentle Reminder:
@@ -652,6 +663,28 @@ const pushLoan = (index: number) => {
     });
 };
 
+const validateDate = () => {
+  if (form.dateOfRelease) {
+    if (form.loans[0].type === 'Loan Fertilizer') {
+        const releaseDate = new Date(form.dateOfRelease)
+        releaseDate.setDate(releaseDate.getDate() + 120)
+
+        const formatted = releaseDate.toISOString().split('T')[0]
+        form.repaymentDate = formatted
+    } 
+    if (form.loans[0].type === 'Cash') {
+        
+        const releaseDate = new Date(form.dateOfRelease)
+        releaseDate.setMonth(releaseDate.getMonth() + 6)
+
+        const formatted = releaseDate.toISOString().split('T')[0]
+        form.repaymentDate = formatted
+
+    }
+  }
+}
+
+
 const generatePDF = (item: any) => {
     console.log('selectedItem.value', selectedItem.value);
     const user = selectedItem.value.user;
@@ -703,16 +736,16 @@ const generatePDF = (item: any) => {
                         [
                             loan.type,
                             loan.type === 'Cash' ? loan.purpose : loan.bags,
-                            `₱${parseInt(loan.amount).toFixed(2)}`  || 0,
-                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount)).toFixed(3) || 0,
-                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value)).toFixed(3)  || 0
+                            `₱${parseInt(loan.amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`  || 0,
+                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') || 0,
+                            ((parseFloat(calculatePenaltyMonthsFn1.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')  || 0
                         ] : [
                             loan.type,
                             loan.purpose?.item || 'N/A',
                             loan.type === 'Cash' ? loan.purpose : loan.bags,
-                            `₱${parseInt(loan.amount).toFixed(2)}`  || 0,
-                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365))).toFixed(2)  || 0,
-                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value))).toFixed(2)  || 0
+                            `₱${parseInt(loan.amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`  || 0,
+                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')  || 0,
+                            (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(selectedItem.value.dateOfRelease, selectedItem.value.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(selectedItem.value.repaymentDate, formattedTodayDateNow.value))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')  || 0
                         ]
                     ]
                 }
@@ -720,11 +753,11 @@ const generatePDF = (item: any) => {
             { text: '\nSummary', style: 'subheader' },
             {
                 ul: [
-                    `Total Loan: ₱${totalAmount.value.toFixed(2)}`,
+                    `Total Loan: ₱${totalAmount.value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`,
                     `Balance:  ${ (totalAmount.value - selectedItem.value.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0)).toFixed(2)}`,
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`,
                     // `Status: ${selectedItem.value.status}`,
                 ]
             },
@@ -814,8 +847,8 @@ const filteredLoansForTable = computed(() => {
       id: loan.id,
       name: loan.user?.name,
       status: loan.status,
-      remainingBalance: (totalAmount - remainingBalance1).toFixed(2),
-      totalAmount: totalAmount.toFixed(2), // Assign the calculated totalAmount
+      remainingBalance: (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'),
+      totalAmount: totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'), // Assign the calculated totalAmount
     //   repaymentDate: loan.repaymentDate,
     //   created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
     };
@@ -869,11 +902,15 @@ const filteredLoansForTable = computed(() => {
                             </div>
                             <div class="mb-3">
                                 <Label for="loanDate">Date of Release</Label>
-                                <Input style="background: white"  required type="date" id="dateOfRelease" v-model="form.dateOfRelease" placeholder="Enter date of release" />
+                                <Input @change="validateDate" style="background: white"  required type="date" id="dateOfRelease" v-model="form.dateOfRelease" placeholder="Enter date of release" />
                             </div>
                             <div class="mb-3">
                                 <Label for="loanDate">Due Date</Label>
                                 <Input style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
+                            </div>
+                            <div class="mb-3">
+                                <Label for="loanDate">Date of Loan Granted</Label>
+                                <Input @change="validateDate" style="background: white"  required type="date" id="loanGrantedDate" v-model="form.loanGrantedDate" placeholder="Enter date of loan granted" />
                             </div>
                             <div class="mt-4">
                                 <h3 class="text-lg font-semibold">Loan Details:</h3>
@@ -1002,7 +1039,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)).toFixed(3)"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         />
 
 
@@ -1015,7 +1052,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount)).toFixed(3)"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         />
 
                                         <!-- <Input
@@ -1025,7 +1062,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount)).toFixed(3)"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         /> -->
 
 
@@ -1039,7 +1076,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow))).toFixed(2)"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         />
                                         <!-- {{form.repaymentDate}}
                                         {{formattedTodayDateNow}} -->
@@ -1057,7 +1094,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2)"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         />
                                         <!-- <Input
                                             readonly
@@ -1066,7 +1103,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) * 0.12 / 365))).toFixed(3)"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
                                         /> -->
                                         <!-- <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 mt-3 text-white" @click="removeLoan(index)">
                                             Remove
@@ -1085,12 +1122,12 @@ const filteredLoansForTable = computed(() => {
                             <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
 
                             <div class="mt-4">
-                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                                 <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
                                     (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0)).toFixed(2) }}</h3>
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                             </div>
 
                             <h3 v-if="action === 'edit' && selectedItem.histories" class="mt-8 text-lg font-semibold">Payment History</h3>
@@ -1151,6 +1188,246 @@ const filteredLoansForTable = computed(() => {
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>View Loan</DialogTitle>
                             </DialogHeader>
+                            <!-- <div class="mb-3">
+                                <Label for="amount">Amount</Label>
+                                <Input required type="number" id="amount" v-model="form.amount" placeholder="Enter Amount" />
+                            </div> -->
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="status">Status</Label>
+                                <select disabled style="background: white"  id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
+                                    <option value="Active">Active</option>
+                                    <option value="Paid">Paid</option>
+                                    <option value="Overdue">Overdue</option>
+                                    <!-- <option value="Under Maintenance">Under Maintenance</option> -->
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <Label for="loanDate">Date of Release</Label>
+                                <Input @change="validateDate" readonly style="background: white"  required type="date" id="dateOfRelease" v-model="form.dateOfRelease" placeholder="Enter date of release" />
+                            </div>
+                            <div class="mb-3">
+                                <Label for="loanDate">Due Date</Label>
+                                <Input readonly style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-lg font-semibold">Loan Details:</h3>
+                                <ul class="ml-6 list-disc">
+                                    <!-- <pre>{{ form.loans }}</pre> -->
+                                    <li v-for="(loan, index) in form.loans" :key="index">
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2">
+                                            <Label for="status">Type</Label>
+                                            <select style="background: white"  disabled :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
+                                                <option value="Loan Fertilizer">Loan Fertilizer</option>
+                                                <option value="Cash">Cash</option>
+                                            </select>
+                                            <!-- <Input required type="text" :id="'type-' + index" v-model="loan.type" placeholder="Enter Type" /> -->
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2">
+                                            <Label v-if="loan.type === 'Loan Fertilizer'" :for="'purpose-' + index">Item</Label>
+                                            <Label v-else :for="'purpose-' + index">Purpose</Label>
+                                            <select
+                                                style="background: white" 
+                                                v-if="loan.type === 'Loan Fertilizer' && action === 'add'"
+                                                id="user"
+                                                v-model="loan.purpose"
+                                                class="w-full rounded border px-3 py-2"
+                                            >
+                                                <option disabled value="">Select a item</option>
+                                                <option :disabled="user.stocks <= 0" v-for="user in props.supplies.data" :key="user.id" :value="user">
+                                                    {{ user.item }}  {{ user.stocks <= 0 ? '(Out of stocks)' : `(${user.stocks})` }} 
+                                                </option>
+                                            </select>
+                                            <!-- <pre>{{ loan.purpose }}</pre> -->
+                                            <select
+                                                disabled
+                                                style="background: white" 
+                                                v-if="loan.type === 'Loan Fertilizer' && action === 'edit'"
+                                                id="user"
+                                                v-model="loan.purpose.id"
+                                                class="w-full rounded border px-3 py-2"
+                                            >
+                                                <option disabled value="">Select a item</option>
+                                                <option v-for="user in props.supplies.data" :key="user.id" :value="loan.purpose.id">
+                                                    {{ user.item }}
+                                                </option>
+                                            </select>
+                                            <Input
+                                                style="background: white" 
+                                                v-if="loan.type === 'Cash'"
+                                                required
+                                                type="text"
+                                                :id="'purpose-' + index"
+                                                v-model="loan.purpose"
+                                                placeholder="Enter Purpose"
+                                            />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">Available Stocks</Label>
+                                            <Input
+                                                style="background: white" 
+                                                readonly
+                                                required
+                                                type="text"
+                                                :id="'areaha-' + index"
+                                                v-model="loan.purpose.stocks"
+                                                placeholder="Enter Available Stocks"
+                                            />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">Unit Price</Label>
+                                            <Input
+                                                readonly
+                                                style="background: white" 
+                                                required
+                                                type="text"
+                                                :id="'areaha-' + index"
+                                                v-model="loan.purpose.unitPrice"
+                                                placeholder="Enter Unit Price"
+                                            />
+                                        </div>
+
+                                        <!-- Input for Purpose -->
+                                        <!-- <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'areaha-' + index">AREA HA</Label>
+                                            <Input style="background-color: white" required type="text" :id="'areaha-' + index" v-model="loan.areaha" placeholder="Enter Area Ha" />
+                                        </div> -->
+
+                                        <!-- Input for Bags -->
+                                        <div v-if="loan.type === 'Loan Fertilizer'" class="mb-2">
+                                            <Label :for="'bags-' + index">Qty</Label>
+                                            <Input
+                                                style="background: white" 
+                                                :readonly="action === 'edit'"
+                                                required
+                                                user.stocks
+                                                type="text"
+                                                :id="'bags-' + index"
+                                                v-model="loan.bags"
+                                                placeholder="Enter Number of Bags"
+                                            />
+                                            <Label v-if="loan.bags > loan.purpose.stocks" class="mt-3" style="color: red" :for="'purpose-' + index">Insufficient Qty</Label>
+                                        </div>
+
+                                        <!-- Input for Amount -->
+                                        <div class="mb-2" v-if="loan.type === 'Loan Fertilizer'">
+                                            <Label :for="'amount-' + index">{{loan.type === 'Loan Fertilizer' ? 'Principal amount fertlizer loan ' : 'Principal amount cash loan'}}</Label>
+                                            <!-- <pre>{{loan}}</pre> -->
+                                            <!-- <div style="margin-left: 10px" v-if="action === 'edit'" >{{loan.purpose.unitPrice * loan.bags}}</div> -->
+                                            <Input v-if="action === 'edit'" readonly style="background-color: white"  type="text" :id="'amoudadnt-' + index"  :placeholder="loan.purpose.unitPrice * loan.bags" />
+                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.amount = loan.purpose.unitPrice * loan.bags" placeholder="Enter Amount" />
+                                        </div>
+                                        <div class="mb-2" v-else>
+                                            <Label :for="'amount-' + index">{{loan.type === 'Loan Fertilizer' ? 'Principal amount fertlizer loan ' : 'Principal amount cash loan'}}</Label>
+                                            <Input style="background-color: white" required type="text" :id="'amount-' + index" v-model="loan.amount" placeholder="Enter Amount" />
+                                        </div>
+                                        <Label v-if="loan.type === 'Cash' && form.status === 'Overdue'" :for="'areaha-' + index">Penalty ({{calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)}} months)</Label>
+                                       <!-- {{calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)}}dd -->
+                                        <Input
+                                            v-if="loan.type === 'Cash' && form.status === 'Overdue'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        />
+
+
+                                        <Label v-if="loan.type === 'Cash'" :for="'areaha-' + index">Interest ({{parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate))}} months)</Label>
+                                        <!-- <div v-if="loan.type === 'Cash'">{{calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)}}</div> -->
+                                        <Input
+                                            v-if="loan.type === 'Cash'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn1(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        />
+
+                                        <!-- <Input
+                                            v-if="loan.type === 'Cash'  && action === 'edit'"
+                                            readonly
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="((parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)) * 0.12 * loan.amount)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        /> -->
+
+
+                                        <Label v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'" :for="'areaha-' + index">Penalty ({{ calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)}} months)</Label>
+                                        <!-- {{}} -->
+                                        <!-- {{}}ddd -->
+                                        <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer' && form.status === 'Overdue'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        />
+                                        <!-- {{form.repaymentDate}}
+                                        {{formattedTodayDateNow}} -->
+                                        <!-- {{parseFloat(calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow))}} -->
+                                        <!-- {{parseFloat(calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow))}} -->
+                                        <!-- {{calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow)}}months
+                                        {{dateDifferenceInDays(form.dateOfRelease, form.repaymentDate)}}dayss -->
+                                        
+                                        <Label v-if="loan.type === 'Loan Fertilizer'" :for="'areaha-' + index">Interest ({{dateDifferenceInDays(form.dateOfRelease, form.repaymentDate)}} days)</Label>
+                                        <!-- <div v-if="loan.type === 'Loan Fertilizer'">{{calculatePenaltyDaysFn1(form.dateOfRelease, form.repaymentDate)}}</div> -->
+                                        <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        />
+                                        <!-- <Input
+                                            readonly
+                                            v-if="loan.type === 'Loan Fertilizer' && action === 'edit'"
+                                            style="background: white" 
+                                            required
+                                            type="text"
+                                            :id="'areaha-' + index"
+                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                        /> -->
+                                        <!-- <Button  v-if="index !== 0 && action === 'add'" class="rounded bg-blue-500 px-4 py-2 mt-3 text-white" @click="removeLoan(index)">
+                                            Remove
+                                        </Button> -->
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- <div class="mb-2" v-if="action === 'edit'">
+                                <Label :for="'amountadada-' + index">Amount Paid</Label>
+                                <Input style="background: white"  required type="number" :id="'amodadaunt-' + index" v-model="amountPaid" placeholder="Enter Amount Paid" />
+                            </div> -->
+                            <!-- <div class="mt-4 text-right" v-if="action === 'add'">
+                                <Button @click="pushLoan()">Add loan</Button>
+                            </div> -->
+
+                            <Button class="mt-5" v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
+
+                            <div class="mt-4">
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
+                                <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
+                                    (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
+                            </div>
+
                             <h3 class="mt-8 text-lg font-semibold">Payment History</h3>
                             <h3 v-if="!selectedItem.histories" class="mt-8 text-lg text-center font-semibold">No data</h3>
                             
@@ -1172,7 +1449,7 @@ const filteredLoansForTable = computed(() => {
                                 :perPage="10"
                             />
                             <div class="mt-4">
-                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) }}</h3>
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                                 <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
                                 selectedItem.loans.reduce((total, loan) => {
                                     const loanAmount = loan.amount || 0;

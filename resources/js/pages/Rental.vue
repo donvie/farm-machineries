@@ -178,22 +178,76 @@ const handleView = (item: any) => {
 };
 
 const generatePDF = (item: any) => {
-    console.log('selectedItem.value', selectedItem.value);
-    const docDefinition = {
-        content: [
-            { text: 'Receipt', style: 'header' },
-            { text: `Machine: ${selectedItem.value.machinery?.machine_name}`, style: 'subheader' },
-            { text: 'Thank you!', style: 'footer' },
-        ],
-        styles: {
-            header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
-            subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
-            footer: { fontSize: 12, italics: true, margin: [0, 10, 0, 0] },
-        },
-    };
+    console.log('item', item)
+    console.log('selectedItem.value', selectedItem.value)
+  const docDefinition = {
+    content: [
+      { text: 'MACHINERY RENTAL RECEIPT', style: 'header', alignment: 'center' },
 
-    pdfMake.createPdf(docDefinition).download('receipt.pdf');
+      {
+        style: 'detailsTable',
+        table: {
+          widths: ['30%', '70%'],
+          body: [
+            [{ text: 'Customer Name:', bold: true }, selectedItem.value.user.name || ''],
+            [{ text: 'Machine Name:', bold: true }, selectedItem.value.machinery.machine_name || ''],
+            [{ text: 'Serial Number:', bold: true }, selectedItem.value.machinery.serial || ''],
+            [{ text: 'Condition after use:', bold: true }, selectedItem.value.condition || 'N/A'],
+            [{ text: 'Rental Fee:', bold: true }, (form.rent * form.otherExpenses).toFixed(2) || 'N/A'],
+            [{ text: 'Status:', bold: true }, selectedItem.value.status || ''],
+            [{ text: 'Date Created:', bold: true }, selectedItem.value.created_at || ''],
+            [{ text: 'Completed Date:', bold: true }, selectedItem.value.completedDate || 'Pending'],
+            [{ text: 'Remarks:', bold: true }, selectedItem.value.remarks || 'None'],
+          ],
+        },
+        layout: 'lightHorizontalLines',
+        margin: [0, 20, 0, 20],
+      },
+
+      { text: 'Thank you for using our service!', style: 'footer', alignment: 'center' },
+    ],
+
+    styles: {
+      header: {
+        fontSize: 20,
+        bold: true,
+        margin: [0, 20, 0, 10],
+      },
+      detailsTable: {
+        margin: [0, 5, 0, 15],
+      },
+      footer: {
+        fontSize: 12,
+        italics: true,
+        margin: [0, 20, 0, 0],
+      },
+    },
+    defaultStyle: {
+    //   font: 'Helvetica',
+    },
+  };
+
+  pdfMake.createPdf(docDefinition).download('machinery-receipt.pdf');
 };
+
+
+// const generatePDF = (item: any) => {
+//     console.log('selectedItem.value', selectedItem.value);
+//     const docDefinition = {
+//         content: [
+//             { text: 'Receipt', style: 'header' },
+//             { text: `Machine: ${selectedItem.value.machinery?.machine_name}`, style: 'subheader' },
+//             { text: 'Thank you!', style: 'footer' },
+//         ],
+//         styles: {
+//             header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+//             subheader: { fontSize: 14, margin: [0, 0, 0, 5] },
+//             footer: { fontSize: 12, italics: true, margin: [0, 10, 0, 0] },
+//         },
+//     };
+
+//     pdfMake.createPdf(docDefinition).download('receipt.pdf');
+// };
 
 const handleDelete = (itemId: string) => {
     console.log('itemIditemId', itemId);
@@ -391,7 +445,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Label for="name">Remarks</Label>
                                 <Input style="background: white" id="remarks" v-model="form.remarks" placeholder="Enter Remarks" />
                             </div>
-                            <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
+                            <Button v-if="action === 'edit'" type="button" @click="generatePDF(form)">Generate receipt</Button>
                             <DialogFooter class="mt-4 gap-2">
                                 <DialogClose as-child>
                                     <Button variant="secondary" @click="closeModal">Cancel</Button>

@@ -19,7 +19,8 @@ class Maintainance extends Model
         'completed_date',
         'condition',
         'workDone',
-        'expenses'
+        'expenses',
+        'sourceOfFund'
     ];
     
     // ✅ Each maintenance entry belongs to a user

@@ -61,8 +61,8 @@
         <h1>{{ $subject }}</h1>
         <p>{{$emailMessage}}</p>
         <br>
-        Sincerely,<br>
-        Management
+        Sincerely,
+        <p>Management</p>
         </p>
         <div class="footer">
             <p>This is an automated email. Please do not reply directly to this message.</p>

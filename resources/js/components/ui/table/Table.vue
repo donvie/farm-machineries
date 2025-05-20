@@ -232,7 +232,12 @@ const downloadPDF = () => {
       <tbody>
         <tr @click="props.isRowClickable ? ViewItem(row) : null" v-for="(row, rowIndex) in paginatedData" :key="rowIndex" class="border-b">
           <td v-for="(value, colIndex) in row" :key="colIndex" class="px-4 py-2">
-            {{ value }}
+            <span v-if="value === 'Overdue'" style="color: red;">
+              {{ value }}
+            </span>
+            <span v-else>
+              {{ value }}
+            </span>
           </td>
           <td class="px-4 py-2 flex gap-2">
             <button v-if="props.isHasDownloadQrCodeBtn" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>

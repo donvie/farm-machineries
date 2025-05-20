@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'User', href: '/user' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Member', href: '/user' }];
 
 const isDialogOpen = ref(false);
 const selectedItem = ref({});
@@ -159,7 +159,7 @@ const handleDelete = (itemId: string) => {
     router.delete(route('user.destroy', itemId), {
         preserveScroll: true,
         onSuccess: () => {
-            console.log('User deleted successfully');
+            console.log('Member deleted successfully');
         },
         onError: (errors) => console.error('Deletion error:', errors),
     });
@@ -174,18 +174,18 @@ const handleFileUpload = (event: Event) => {
 </script>
 
 <template>
-    <Head title="User" />
+    <Head title="Member" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button>Add User</Button>
+                        <Button>Add Member</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="saveUser">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>Add New User</DialogTitle>
+                                <DialogTitle>Add New Member</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new user. </DialogDescription> -->
                             </DialogHeader>
 
@@ -260,7 +260,7 @@ const handleFileUpload = (event: Event) => {
                     <DialogContent class="h-screen max-h-screen w-screen max-w-none overflow-y-auto">
                         <form @submit.prevent="saveUser">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle class="mb-10">View User</DialogTitle>
+                                <DialogTitle class="mb-10">View Member</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new user. </DialogDescription> -->
                             </DialogHeader>
 
@@ -320,7 +320,7 @@ const handleFileUpload = (event: Event) => {
                                 :noActions="true"
                                 :perPage="10"
                             />
-                            <DialogTitle class="py-10">List of Maintainances</DialogTitle>
+                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules</DialogTitle>
 
                             <Table
                                 :headers="headersView1"
@@ -346,7 +346,7 @@ const handleFileUpload = (event: Event) => {
                 </Dialog>
             </div>
             <Table
-                title="User"
+                title="Member"
                 :headers="headers"
                 :data="filteredUsers"
                 :filterData="filteredUsersForTable"

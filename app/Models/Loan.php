@@ -20,7 +20,9 @@ class Loan extends Model
         'loans',
         'histories',
         'qty',
-        'dateOfRelease'
+        'dateOfRelease',
+        'loanGrantedDate',
+        'isFullPayment'
     ];
 
     protected $casts = [

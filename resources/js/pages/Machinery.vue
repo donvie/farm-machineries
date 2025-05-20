@@ -364,7 +364,7 @@ const filteredMachineriesForTable = computed(() => {
                                     <option value="Under Maintenance">Under Maintenance</option>
                                 </select>
                             </div>
-                            <DialogTitle class="py-10">List of Maintainances</DialogTitle>
+                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules</DialogTitle>
 
                             <Table
                                 :headers="headersView"

@@ -772,7 +772,10 @@ const generatePDF = (item: any) => {
             {
                 ul: [
                     `Total Loan: ₱${totalAmount.value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`,
-                    `Balance:  ${ (totalAmount.value - selectedItem.value.histories.reduce((total, loan) => {
+                    `Balance:  ${ (totalAmount.value - selectedItem.value?.histories?.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')  === 'NaN' ? '0' : (totalAmount.value - selectedItem.value?.histories?.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
                                 }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`,

@@ -19,6 +19,7 @@ const props = defineProps<{
     maintainances: number;
     loansData: any[];
     loans: number;
+    maintainancesData: any[];
     rentals: number;
     machineriesData: any[]; //  Add type here
 }>();
@@ -202,7 +203,7 @@ onMounted(() => {
                 
                 <Card class="flex h-[120px] items-center justify-center rounded-xl bg-green-500 text-white shadow-lg">                    <CardHeader class="text-center">
                         <CardTitle class="text-xl opacity-80">Total number of machineries under maintainance</CardTitle>
-                        <CardTitle class="text-2xl font-bold">{{ machineriesData?.filter(machine=> machine.status === 'Under Maintenance').length }}</CardTitle>
+                        <CardTitle class="text-2xl font-bold">{{ maintainancesData?.filter(machine=> machine.status === 'Under Maintenance').length }}</CardTitle>
                     </CardHeader>
                 </Card>
 

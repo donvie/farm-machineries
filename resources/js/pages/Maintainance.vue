@@ -95,9 +95,17 @@ const addMaintainance = (e: Event) => {
     } else {
         // router.patch(route('machinery.update', form.machinery_id), { status: 'Pending' });
 
+        if (!props?.maintainances?.data.filter(dd  => dd.user.id === form.user_id).map(d => d.maintainance_date).includes(form.maintainance_date)) {
+
         if (isToday(form.maintainance_date)) {
             form.status = 'Under Maintenance'
         }
+
+        // if (props?.maintainances?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Active")) {
+        //     alert('You currently have an active loan. Please settle it before applying for a new one. Only one loan is allowed at a time.')
+        //     return
+            
+        // }
 
 
         router.post(route('maintainance.store'), form, {
@@ -108,6 +116,9 @@ const addMaintainance = (e: Event) => {
             onError: (errors) => console.error('Form errors:', errors),
             onFinish: () => closeModal(),
         });
+        } else {
+            alert('Date is unavailable. Please select another maintenance date.');
+        }
     }
 };
 

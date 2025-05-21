@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Rental;
 use App\Models\User;
 use App\Models\Machinery;
+use App\Models\Maintainance;
 use Inertia\Inertia;
 
 class RentalController extends Controller
@@ -25,11 +26,13 @@ class RentalController extends Controller
         
         $users = User::all(); // Load all users
         $machineries = Machinery::all(); // Load all users
+        $maintainances = Maintainance::all(); // Load all users
     
         return Inertia::render('Rental', [
             'rentals' => ['data' => $rentals],
             'users' => $users, // Add users to the response
             'machineries' => $machineries, // Add users to the response
+            'maintainances' => $maintainances,
         ]);
         // $rentals = Rental::all(); // Load all data
         // return Inertia::render('Rental', ['rentals' => ['data' => $rentals]]);

@@ -28,6 +28,7 @@ const props = defineProps<{
     };
     users: {};
     machineries: {};
+    maintainances: {}
 }>();
 
 console.log('propspropsprops', props);
@@ -120,6 +121,11 @@ const addRental = (e: Event) => {
 
 
     } else {
+        if (props?.maintainances.filter(dd  => dd.user_id === form.operator_id).map(d => d.maintainance_date).includes(form.startDate)) {
+            alert('Date is unavailable. Please select another work start date.');
+            return
+        }
+
         if (!props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate).includes(form.startDate)) {
             console.log('form.startDate', form.startDate)
             if (isToday(form.startDate)) {

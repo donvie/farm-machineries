@@ -19,6 +19,7 @@ Route::get('dashboard', function () {
         'machineries' => machinery::count(),
         'machineriesData' => machinery::all(),
         'maintainances' => maintainance::count(),
+        'maintainancesData' => maintainance::all(),
         'loans' => loan::count(),
         'loansData' => loan::all(),
         'rentals' => rental::count(),

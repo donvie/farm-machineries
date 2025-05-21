@@ -47,7 +47,7 @@ const form = useForm({
     loanDate: null,
     repaymentDate: null,
     isFullPayment: '',
-    loanGrantedDate: '',
+    // loanGrantedDate: '',
     dateOfRelease: null,
     remarks: '',
     loans: [
@@ -365,7 +365,7 @@ const addLoan = (e: Event) => {
 
 
 
-    if (totalAmount.value - selectedItem.value.histories.reduce((total, loan) => {
+    if (totalAmount.value - selectedItem.value.histories?.reduce((total, loan) => {
                             const loanAmount = loan.amountPaid || 0;
                             return total + loanAmount;
                         }, 0) <= 0) {
@@ -785,30 +785,27 @@ const filteredLoans = computed(() => {
 });
 
 const filteredLoansForTable = computed(() => {
-  return filteredLoans.value.map((loan) => {
+    console.log('filteredLoans', filteredLoans.value)
+  return filteredLoans.value.map((l) => {
     // Calculate the total amount for the current loan object
-    const totalAmount = loan.loans.reduce((total, loan) => {
-        console.log('formform', form)
+    const totalAmount = l.loans.reduce((total, loan) => {
+        console.log('loandadad', loan)
         let penalty = 0;
         let interest = 0;
         const dueDate = loan.dueDate; // Assuming each loan has a dueDate
 
-        if (form.status === 'Overdue' && form.repaymentDate) {
+        if (l.status === 'Overdue' && l.repaymentDate) {
         if (loan.type === 'Cash') {
-            // interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
-            penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+            penalty = (parseFloat(calculatePenaltyMonthsFn1.value(l.dateOfRelease, l.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(l.repaymentDate, formattedTodayDateNow.value))
         } else {
-            // interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
-            penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+            penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(l.dateOfRelease, l.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
         }
         }
 
         if (loan.type === 'Cash') {
-            interest = ((parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount))
-        // penalty = (parseFloat(calculatePenaltyMonthsFn1.value(form.dateOfRelease, form.repaymentDate)) * 0.01 * loan.amount) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+            interest = ((parseFloat(calculatePenaltyMonthsFn1.value(l.dateOfRelease, l.repaymentDate)) * 0.01 * loan.amount))
         } else {
-            interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)))
-        // penalty = ((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(form.dateOfRelease, form.repaymentDate) * 0.12 / 365)) * parseFloat(calculatePenaltyMonthsFn.value(form.repaymentDate, formattedTodayDateNow.value))
+            interest = (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays.value(l.dateOfRelease, l.repaymentDate) * 0.12 / 365)))
         }
 
         console.log('penaltypenalty', penalty)
@@ -821,21 +818,13 @@ const filteredLoansForTable = computed(() => {
         return total + (loanAmount * loanQty) + penalty + interest;
     }, 0);
 
-    // const remainingBalance =  loan.loans.reduce((total, loan) => {
-    //     const loanAmount = loan.amount || 0;
-    //     const loanQty = loan.bags || 0;
-    //     return total + loanAmount * loanQty; // Multiply amount by qty (bags)
-    // }, 0) - loan && loan.histories ? loan?.histories.reduce((total, loan) => {
-    //     const loanAmount = loan.amountPaid || 0;
-    //     return total + loanAmount;
-    // }, 0) : 0
 
  let remainingBalance1 = 0
 
-    if (loan && loan.histories) {
+    if (l && l.histories) {
 
-    remainingBalance1 = loan.histories.reduce((sum, singleLoan) => {
-        console.log('loanloan', loan)
+    remainingBalance1 = l.histories.reduce((sum, singleLoan) => {
+        console.log('loanloan', l)
       return sum + singleLoan.amountPaid
     }, 0);
     console.log('remainingBalance1', remainingBalance1)
@@ -844,11 +833,11 @@ const filteredLoansForTable = computed(() => {
 
 
     return {
-      id: loan.id,
-      name: loan.user?.name,
-      status: loan.status,
-      remainingBalance: (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'),
-      totalAmount: totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'), // Assign the calculated totalAmount
+      id: l.id,
+      name: l.user?.name,
+      status: l.status,
+      remainingBalance: (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN'? 0 : (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'),
+      totalAmount: totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN' ? 0 : totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'), // Assign the calculated totalAmount
     //   repaymentDate: loan.repaymentDate,
     //   created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
     };
@@ -908,10 +897,10 @@ const filteredLoansForTable = computed(() => {
                                 <Label for="loanDate">Due Date</Label>
                                 <Input style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
                             </div>
-                            <div class="mb-3">
+                            <!-- <div class="mb-3">
                                 <Label for="loanDate">Date of Loan Granted</Label>
                                 <Input @change="validateDate" style="background: white"  required type="date" id="loanGrantedDate" v-model="form.loanGrantedDate" placeholder="Enter date of loan granted" />
-                            </div>
+                            </div> -->
                             <div class="mt-4">
                                 <h3 class="text-lg font-semibold">Loan Details:</h3>
                                 <ul class="ml-6 list-disc">

@@ -380,7 +380,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
                             </div> -->
 
-                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combined Harvester'">
+                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combine Harvester'">
                                 <Label for="status">Attachment</Label>
                                 <select style="background: white" id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
                                     <option value="With Blade">With Blade</option>
@@ -538,7 +538,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
                             </div> -->
 
-                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combined Harvester'">
+                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combine Harvester'">
                                 <Label for="status">Attachment</Label>
                                 <select style="background: white" disabled id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
                                     <option value="With Blade">With Blade</option>

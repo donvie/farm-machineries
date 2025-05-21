@@ -94,13 +94,14 @@ const formattedDate = (dateString: any, formatString: any) => {
 };
 
 const addRental = (e: Event) => {
-  if (!isDateDisabled.value && form.startDate) {
+
+//   if (!isDateDisabled.value && form.startDate) {
 
     e.preventDefault();
     console.log('Submitting form...');
 
     if (form.id) {
-        if (form.status === 'Active') {
+        if (form.status === 'In use') {
             
             router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
         }
@@ -119,19 +120,32 @@ const addRental = (e: Event) => {
 
 
     } else {
+        if (!props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate).includes(form.startDate)) {
+            console.log('form.startDate', form.startDate)
+            if (isToday(form.startDate)) {
+                form.status = 'In use'
+            }
 
-        router.post(route('rental.store'), form, {
-            preserveScroll: true,
-            onSuccess: () => {
-                closeModal();
-            },
-            onError: (errors) => console.error('Form errors:', errors),
-            onFinish: () => closeModal(),
-        });
+            // console.log('form',  )
+
+            // console.log('dada', props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate))
+            // console.log('aafaf', form.startDate)
+            // console.log('aaad', props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate))
+            // console.log('aaad', )
+            // props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate).includes(form.startDate)
+
+            router.post(route('rental.store'), form, {
+                preserveScroll: true,
+                onSuccess: () => {
+                    closeModal();
+                },
+                onError: (errors) => console.error('Form errors:', errors),
+                onFinish: () => closeModal(),
+            });
+        } else {
+            alert('Date is unavailable. Please select another work start date.');
+        }
     }
-  } else {
-    alert('Date is unavailable. Please select another work start date.');
-  }
 };
 
 // const disabledDate = (currentDate) => {
@@ -151,6 +165,18 @@ const addRental = (e: Event) => {
 
 //   return isPast || isExisting;
 // };
+
+const isToday = (input: string | number | Date): boolean => {
+  const inputDate = new Date(input); // Ensure it's a Date
+  const today = new Date();
+
+  return (
+    inputDate.getFullYear() === today.getFullYear() &&
+    inputDate.getMonth() === today.getMonth() &&
+    inputDate.getDate() === today.getDate()
+  );
+};
+
 
 const closeModal = () => {
     form.clearErrors();
@@ -354,7 +380,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
                             </div> -->
 
-                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Harvester'">
+                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combined Harvester'">
                                 <Label for="status">Attachment</Label>
                                 <select style="background: white" id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
                                     <option value="With Blade">With Blade</option>
@@ -419,7 +445,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Label for="status">Status</Label>
                                 <select id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
                                     <option value="Pending">Pending</option>
-                                    <option value="Active">Active</option>
+                                    <option value="In use">In use</option>
                                     <option value="Returned">Returned</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
@@ -432,6 +458,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 @change="validateDate"
                                 :min="todayFormatted"
                                 style="background: white"
+                                :disabled="action === 'edit'"
                                 required
                                 type="date" id="repaymentDate" v-model="form.startDate" placeholder="Enter Work start date" />
                             </div>
@@ -459,7 +486,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                 </Dialog>
                 <select style="height: 37px"  id="status" v-model="filter"  class="ml-2">
                     <option value="All">All</option>
-                    <option value="Active">Active</option>
+                    <option value="In use">In use</option>
                     <option value="Returned">Returned</option>
                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                 </select>
@@ -511,7 +538,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 <Input id="otherExpenses" v-model="form.otherExpenses" placeholder="Enter Other Expenses" />
                             </div> -->
 
-                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Harvester'">
+                            <div class="mb-3" v-if="action === 'edit' && form.machinery.machine_name === 'Multi-crop Combined Harvester'">
                                 <Label for="status">Attachment</Label>
                                 <select style="background: white" disabled id="status" v-model="form.attachment" class="w-full rounded border px-3 py-2">
                                     <option value="With Blade">With Blade</option>
@@ -575,7 +602,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select style="background: white" disabled id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Active">Active</option>
+                                    <option value="In use">In use</option>
                                     <option value="Returned">Returned</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>

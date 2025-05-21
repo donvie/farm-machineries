@@ -273,6 +273,19 @@ const formattedDate = (dateString: any, formatString: any) => {
 };
 
 const addLoan = (e: Event) => {
+    if (form.loans[0].type === 'Cash' && form.loans[0].amount > 200000) {
+        alert('The maximum allowed amount is ₱200,000.')
+        return
+    }
+    if (form.loans[0].type === 'Loan Fertilizer' && form.loans[0].bags > 20) {
+        alert('The maximum allowed bags is 20.')
+        return
+    }
+
+
+// console.log('daad123', )
+// console.log('daw231', form.user_id)
+
   if (form.loans.map(loan => {
     // Convert 'bags' to a number for comparison
     const bags = Number(loan.bags);
@@ -383,6 +396,11 @@ const addLoan = (e: Event) => {
       //onFinish: () => closeModal(),  Remove from here
     });
   } else {
+    if (props?.loans?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Active")) {
+        alert('You currently have an active loan. Please settle it before applying for a new one. Only one loan is allowed at a time.')
+        return
+        
+    }
     // New loan creation
     updateStocks(); // Call stock update function *before* creating the loan.
 
@@ -836,8 +854,9 @@ const filteredLoansForTable = computed(() => {
       id: l.id,
       name: l.user?.name,
       status: l.status,
-      remainingBalance: (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN'? 0 : (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'),
-      totalAmount: totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN' ? 0 : totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'), // Assign the calculated totalAmount
+    //   repaymentDate: l.repaymentDate,
+      remainingBalance: (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN' || (totalAmount - remainingBalance1) < 0  ? 0 : (totalAmount - remainingBalance1).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'),
+      totalAmount: totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') === 'NaN' || totalAmount < 0 ? 0 : totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,'), // Assign the calculated totalAmount
     //   repaymentDate: loan.repaymentDate,
     //   created_at: formattedDate(loan.created_at, 'yyyy-MM-dd'),
     };
@@ -1111,7 +1130,7 @@ const filteredLoansForTable = computed(() => {
                             <Button v-if="action === 'edit'" type="button" @click="generatePDF()">Generate receipt</Button>
 
                             <div class="mt-4">
-                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
+                                <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) === 'NaN' || totalAmount < 0 ? 0 : totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                                 <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
                                     (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Supply;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class LoanController extends Controller
 {
@@ -15,7 +16,26 @@ class LoanController extends Controller
      */
     public function index()
     {
-        $loans = Loan::with(['user'])->get();
+        $today = Carbon::today();
+
+        $loans = Loan::with(['user'])->get()->map(function ($loan) use ($today) {
+            if (!empty($loan->repaymentDate) && $loan->status !== 'Paid') {
+                $repaymentDate = Carbon::parse($loan->repaymentDate);
+        
+                logger("Repayment Date: $repaymentDate, Today: $today");
+        
+                if ($repaymentDate->lessThan($today)) {
+                    logger("Still within due date");
+                    $loan->status = $loan->status;
+                } else {
+                    logger("Marked as overdue");
+                    $loan->status = 'Overdue';
+                }
+            }
+        
+            return $loan;
+        });
+    
         // $loans = Loan::all(); // Load all data
         $users = User::all(); // Load all users
         $supplies = Supply::all(); // Load all users

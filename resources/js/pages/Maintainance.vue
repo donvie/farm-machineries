@@ -49,6 +49,16 @@ const form = useForm({
 
 const filter = ref('All');
 
+const isToday = (input: string | number | Date): boolean => {
+  const inputDate = new Date(input); // Ensure it's a Date
+  const today = new Date();
+
+  return (
+    inputDate.getFullYear() === today.getFullYear() &&
+    inputDate.getMonth() === today.getMonth() &&
+    inputDate.getDate() === today.getDate()
+  );
+};
 
 const formattedDate = (dateString: any, formatString: any) => {
     try {
@@ -84,6 +94,11 @@ const addMaintainance = (e: Event) => {
         });
     } else {
         // router.patch(route('machinery.update', form.machinery_id), { status: 'Pending' });
+
+        if (isToday(form.maintainance_date)) {
+            form.status = 'Under Maintenance'
+        }
+
 
         router.post(route('maintainance.store'), form, {
             preserveScroll: true,

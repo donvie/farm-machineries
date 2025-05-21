@@ -170,6 +170,9 @@ const closeModal = () => {
 const handleView = (item: any) => {
     selectedItem.value = item;
     console.log('item', item);
+    Object.keys(item).forEach((key) => {
+        form[key] = item[key] ?? '';
+    });
     isDialogViewOpen.value = true;
 };
 
@@ -346,24 +349,52 @@ const filteredMachineriesForTable = computed(() => {
                                 <DialogTitle class="mb-10">View Machinery</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
                             </DialogHeader>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div>
+    <Label for="machine_name">Machine Name</Label>
+    <Input readonly style="background: white" required id="machine_name" v-model="form.machine_name" placeholder="Enter machine name" />
+  </div>
 
-                            <div class="grid gap-4">
-                                <!-- <Label for="image">Upload Image</Label>
-                                <Input id="image" type="file" accept="image/*" @change="handleFileUpload" /> -->
+  <div>
+    <Label for="status">Status</Label>
+    <select disabled id="status" v-model="selectedItem.status" class="w-full rounded border px-3 py-2">
+      <option value="Available">Available</option>
+      <option value="In Use">In Use</option>
+      <option value="Under Maintenance">Under Maintenance</option>
+    </select>
+  </div>
 
-                                <Label for="machine_name">Machine Name</Label>
-                                <Input readonly required id="machine_name" v-model="selectedItem.machine_name" placeholder="Enter machine name" />
+  <div>
+    <Label for="type">Brand</Label>
+    <Input readonly style="background: white" required id="type" v-model="form.brand" placeholder="Enter brand" />
+  </div>
 
-                                <!-- <Label for="type">Type</Label>
-                                <Input readonly required id="type" v-model="selectedItem.type" placeholder="Enter machine type" /> -->
+  <div>
+    <Label for="serial">Serial</Label>
+    <Input readonly style="background: white" required id="serial" v-model="form.serial" placeholder="Enter Serial" />
+  </div>
 
-                                <Label for="status">Status</Label>
-                                <select disabled id="status" v-model="selectedItem.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Available">Available</option>
-                                    <option value="In Use">In Use</option>
-                                    <option value="Under Maintenance">Under Maintenance</option>
-                                </select>
-                            </div>
+  <div>
+    <Label for="capacity">Capacity</Label>
+    <Input readonly style="background: white" required id="capacity" v-model="form.capacity" placeholder="Enter Capacity" />
+  </div>
+
+  <div>
+    <Label for="supplier">Supplier</Label>
+    <Input readonly style="background: white" required id="supplier" v-model="form.supplier" placeholder="Enter Supplier" />
+  </div>
+
+  <div>
+    <Label for="branchAddress">Branch Address</Label>
+    <Input readonly style="background: white" required id="branchAddress" v-model="form.branchAddress" placeholder="Enter branch Address" />
+  </div>
+
+  <div>
+    <Label for="year_acquired">Year Acquired</Label>
+    <Input readonly style="background: white" required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
+  </div>
+</div>
+
                             <DialogTitle class="py-10">List of Preventive Maintenance Schedules</DialogTitle>
 
                             <Table

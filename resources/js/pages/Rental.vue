@@ -129,6 +129,7 @@ const addRental = (e: Event) => {
         if (!props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate).includes(form.startDate)) {
             console.log('form.startDate', form.startDate)
             if (isToday(form.startDate)) {
+                router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
                 form.status = 'In use'
             }
 

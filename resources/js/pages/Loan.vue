@@ -1445,6 +1445,9 @@ const filteredLoansForTable = computed(() => {
                                     (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
                                 }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                             </div>
 
@@ -1468,7 +1471,7 @@ const filteredLoansForTable = computed(() => {
                                 :isHasFilter="false"
                                 :perPage="10"
                             />
-                            <div class="mt-4">
+                            <!-- <div class="mt-4">
                                 <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                                 <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
                                 selectedItem.loans.reduce((total, loan) => {
@@ -1479,7 +1482,7 @@ const filteredLoansForTable = computed(() => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
                                 }, 0) }}</h3>
-                            </div>
+                            </div> -->
                         </form>
                     </DialogContent>
                 </Dialog>

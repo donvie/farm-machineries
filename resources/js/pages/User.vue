@@ -86,7 +86,7 @@ const filteredUsersForTable = computed(() => {
     id,
     name,
     email,
-    role,
+    role: role === 'user' ? 'member' : role,
     created_at: formattedDate(created_at, 'yyyy-MM-dd'),
   }));
 });

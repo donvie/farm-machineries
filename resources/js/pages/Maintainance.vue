@@ -103,6 +103,7 @@ const addMaintainance = (e: Event) => {
 
         if (isToday(form.maintainance_date)) {
             form.status = 'Under Maintenance'
+        router.patch(route('machinery.update', form.machinery_id), { status: 'Under Maintenance' });
         }
 
         // if (props?.maintainances?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Active")) {

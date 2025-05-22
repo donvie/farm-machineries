@@ -375,15 +375,26 @@ const addLoan = (e: Event) => {
       date: format(new Date(), 'yyyy-MM-dd'),
       status: form.status,
     });
+//     console.log('111', totalAmount.value)
+//     console.log('222', form.histories?.reduce((total, loan) => {
+//                             const loanAmount = loan.amountPaid || 0;
+//                             return total + loanAmount;
+//                         }, 0))
 
+// console.log('dadad', totalAmount.value < selectedItem.value.histories?.reduce((total, loan) => {
+//                             const loanAmount = loan.amountPaid || 0;
+//                             return total + loanAmount;
+//                         }, 0))
 
+const dad = form.histories?.reduce((total, loan) => {
+    const loanAmount = loan.amountPaid || 0;
+    return total + loanAmount;
+}, 0)
 
-    if (totalAmount.value - selectedItem.value.histories?.reduce((total, loan) => {
-                            const loanAmount = loan.amountPaid || 0;
-                            return total + loanAmount;
-                        }, 0) <= 0) {
+    if (totalAmount.value <= dad){
                             form.status = "Paid"
     }
+
 
 
     router.patch(route('loan.update', form.id), form, {

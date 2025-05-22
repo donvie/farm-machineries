@@ -1141,10 +1141,10 @@ const filteredLoansForTable = computed(() => {
                             <div class="mt-4">
                                 <h3 class="text-md font-semibold">Total Loan: {{ totalAmount.toFixed(2) === 'NaN' || totalAmount < 0 ? 0 : totalAmount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
                                 <h3 v-if="selectedItem.loans && selectedItem.histories" class="text-md font-semibold">Balance: {{ 
-                                    (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                    ((totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                }, 0)).toFixed(2)) < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
                                 }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}}</h3>
@@ -1445,7 +1445,7 @@ const filteredLoansForTable = computed(() => {
                                     (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                }, 0)).toFixed(2) < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
                                 }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>

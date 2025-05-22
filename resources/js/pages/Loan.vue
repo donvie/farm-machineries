@@ -396,7 +396,7 @@ const addLoan = (e: Event) => {
       //onFinish: () => closeModal(),  Remove from here
     });
   } else {
-    if (props?.loans?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Active")) {
+    if (props?.loans?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Active") || props?.loans?.data.filter(dad => dad.user.id === form.user_id).map(d => d.status).includes("Overdue")) {
         alert('You currently have an active loan. Please settle it before applying for a new one. Only one loan is allowed at a time.')
         return
         
@@ -681,6 +681,12 @@ const pushLoan = (index: number) => {
     });
 };
 
+const validateDate1 = () => {
+    form.loans[0].amount = 0
+    // form.loans[0].purpose.unitPrice = 0
+    // form.loans[0].bags = 0
+}
+
 const validateDate = () => {
   if (form.dateOfRelease) {
     if (form.loans[0].type === 'Loan Fertilizer') {
@@ -931,7 +937,7 @@ const filteredLoansForTable = computed(() => {
                                         <!-- Input for Purpose -->
                                         <div class="mb-2">
                                             <Label for="status">Type</Label>
-                                            <select style="background: white"  :disabled="action === 'edit'" :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
+                                            <select  @change="validateDate1" style="background: white"  :disabled="action === 'edit'" :id="'type-' + index" v-model="loan.type" class="w-full rounded border px-3 py-2">
                                                 <option value="Loan Fertilizer">Loan Fertilizer</option>
                                                 <option value="Cash">Cash</option>
                                             </select>
@@ -1035,7 +1041,7 @@ const filteredLoansForTable = computed(() => {
                                             <!-- <pre>{{loan}}</pre> -->
                                             <!-- <div style="margin-left: 10px" v-if="action === 'edit'" >{{loan.purpose.unitPrice * loan.bags}}</div> -->
                                             <Input v-if="action === 'edit'" readonly style="background-color: white"  type="text" :id="'amoudadnt-' + index"  :placeholder="loan.purpose.unitPrice * loan.bags" />
-                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.amount = loan.purpose.unitPrice * loan.bags" placeholder="Enter Amount" />
+                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.purpose.unitPrice && loan.bags ? loan.amount = loan.purpose.unitPrice * loan.bags : 0" placeholder="Enter Amount" />
                                         </div>
                                         <div class="mb-2" v-else>
                                             <Label :for="'amount-' + index">{{loan.type === 'Loan Fertilizer' ? 'Principal amount fertlizer loan ' : 'Principal amount cash loan'}}</Label>
@@ -1105,7 +1111,7 @@ const filteredLoansForTable = computed(() => {
                                             required
                                             type="text"
                                             :id="'areaha-' + index"
-                                            :placeholder="(((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')"
+                                            :placeholder="loan.purpose.unitPrice && loan.bags ? (((loan.purpose.unitPrice * loan.bags) * (dateDifferenceInDays(form.dateOfRelease, form.repaymentDate) * 0.12 / 365))).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') : 0"
                                         />
                                         <!-- <Input
                                             readonly

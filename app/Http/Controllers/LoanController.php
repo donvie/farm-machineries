@@ -16,6 +16,24 @@ class LoanController extends Controller
      */
     public function index()
     {
+        // $loans = Loan::with(['user'])->get()->map(function ($loan) use ($today) {
+        //     if (!empty($loan->repaymentDate) && $loan->status !== 'Paid') {
+        //         $repaymentDate = Carbon::parse($loan->repaymentDate);
+        
+        //         logger("Repayment Date: $repaymentDate, Today: $today");
+        
+        //         if ($repaymentDate->lessThan($today)) {
+        //             logger("Still within due date");
+        //             $loan->status = $loan->status;
+        //         } else {
+        //             logger("Marked as overdue");
+        //             $loan->status = 'Overdue';
+        //         }
+        //     }
+        
+        //     return $loan;
+        // });
+
         $today = Carbon::today();
 
         $loans = Loan::with(['user'])->get()->map(function ($loan) use ($today) {
@@ -24,19 +42,20 @@ class LoanController extends Controller
         
                 logger("Repayment Date: $repaymentDate, Today: $today");
         
-                if ($repaymentDate->lessThan($today)) {
-                    logger("Still within due date");
-                    $loan->status = $loan->status;
-                } else {
+                // If repaymentDate is today or earlier, it's overdue
+                if ($repaymentDate->lessThanOrEqualTo($today)) {
                     logger("Marked as overdue");
                     $loan->status = 'Overdue';
+                    // $loan->save(); // ⬅️ Important to persist the change
+                } else {
+                    logger("Still within due date");
                 }
             }
         
             return $loan;
         });
-    
-        // $loans = Loan::all(); // Load all data
+        
+        // $loans = Loan::with(['user'])->get();
         $users = User::all(); // Load all users
         $supplies = Supply::all(); // Load all users
 

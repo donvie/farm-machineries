@@ -1144,7 +1144,10 @@ const filteredLoansForTable = computed(() => {
                                     (totalAmount - selectedItem.histories.reduce((total, loan) => {
                                     const loanAmount = loan.amountPaid || 0;
                                     return total + loanAmount;
-                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') }}</h3>
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') < 0 ? 0 : (totalAmount - selectedItem.histories.reduce((total, loan) => {
+                                    const loanAmount = loan.amountPaid || 0;
+                                    return total + loanAmount;
+                                }, 0)).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}}</h3>
                             </div>
 
                             <h3 v-if="action === 'edit' && selectedItem.histories" class="mt-8 text-lg font-semibold">Payment History</h3>

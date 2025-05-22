@@ -121,6 +121,12 @@ const addRental = (e: Event) => {
 
 
     } else {
+         if (props?.maintainances?.filter(dd  => dd.machinery_id === form.machinery_id).map(d => d.maintainance_date).includes(form.startDate)) {
+            alert('The machine is currently unavailable.')
+            return
+         }
+
+
         if (props?.maintainances.filter(dd  => dd.user_id === form.operator_id).map(d => d.maintainance_date).includes(form.startDate)) {
             alert('Date is unavailable. Please select another work start date.');
             return

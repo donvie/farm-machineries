@@ -94,6 +94,10 @@ const addMaintainance = (e: Event) => {
         });
     } else {
         // router.patch(route('machinery.update', form.machinery_id), { status: 'Pending' });
+         if (props?.maintainances?.data.filter(dd  => dd.machinery.id === form.machinery_id).map(d => d.maintainance_date).includes(form.maintainance_date)) {
+            alert('The machine is currently unavailable.')
+            return
+         }
 
         if (!props?.maintainances?.data.filter(dd  => dd.user.id === form.user_id).map(d => d.maintainance_date).includes(form.maintainance_date)) {
 

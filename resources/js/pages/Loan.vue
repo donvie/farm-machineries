@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 import { computed, ref } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -34,6 +35,7 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const amountPaid = ref(0);
 const action = ref('');
+const files = ref([]);
 
 console.log('dadadad', props);
 const filter = ref('All');
@@ -43,9 +45,10 @@ const form = useForm({
     user_id: {},
     amount: 0,
     purpose: '',
-    status: 'Active',
+    status: 'For Approval',
     loanDate: null,
     repaymentDate: null,
+    image: null,
     isFullPayment: '',
     // loanGrantedDate: '',
     dateOfRelease: null,
@@ -69,6 +72,11 @@ const form = useForm({
 const formattedTodayDateNow = computed(() => {
   return format(Date.now(), 'MMMM dd, yyyy'); // Example format
 });
+
+
+const page = usePage();
+const role = computed(() => page.props.auth.user.role);
+console.log('authauthauth', role.value)
 
 
 const calculatePenaltyMonthsFn1 = computed(() => {
@@ -311,9 +319,11 @@ const addLoan = (e: Event) => {
     }
   });
 
-  if (form.image) {
-    formData.append('image', form.image);
-  }
+
+
+//   if (form.image) {
+//     formData.append('image', form.image);
+//   }
 
   if (Array.isArray(form.loans)) {
     formData.append('loans', JSON.stringify(form.loans));
@@ -396,6 +406,10 @@ const dad = form.histories?.reduce((total, loan) => {
     }
 
 
+    if (form.image) {
+        formData.append('image', form.image);
+    }
+
 
     router.patch(route('loan.update', form.id), form, {
       preserveScroll: true,
@@ -412,6 +426,17 @@ const dad = form.histories?.reduce((total, loan) => {
         return
         
     }
+
+      if (files.value.length !== 0) {
+        console.log('files.value', files.value)
+
+    files.value.forEach((file, index) => {
+        formData.append('files[]', file);
+      });
+
+      console.log('formDataformData', formData)
+
+  }
     // New loan creation
     updateStocks(); // Call stock update function *before* creating the loan.
 
@@ -811,6 +836,16 @@ const generatePDF = (item: any) => {
     pdfMake.createPdf(docDefinition).download('loan-receipt.pdf');
 };
 
+const handleFiles = (e: any) => {
+    
+      files.value = Array.from(e.target.files);
+    // const target = event.target as HTMLInputElement;
+    // if (target.files && target.files.length > 0) {
+    //     form.image = target.files[0]; // Store file object
+    // }
+};
+
+
 
 const filteredLoans = computed(() => {
   if (filter.value === 'All') {
@@ -883,6 +918,22 @@ const filteredLoansForTable = computed(() => {
   });
 });
 
+
+// Step 1: Parse attachments JSON string
+const attachments = computed(() => {
+  try {
+    return JSON.parse(form.attachments || '[]')
+  } catch (e) {
+    return []
+  }
+})
+
+const attachmentUrls = computed(() =>
+  attachments.value.map(file => ({
+    name: file.name,
+    url: `/storage/${file.url}`  // assumes Laravel's storage:link setup
+  }))
+);
 </script>
 
 <template>
@@ -892,7 +943,7 @@ const filteredLoansForTable = computed(() => {
             <div class="my-4">
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add Loan</Button>
+                        <Button v-if="role === 'admin'" @click="action = 'add'">Add Loan</Button>
                     </DialogTrigger>
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addLoan">
@@ -900,10 +951,8 @@ const filteredLoansForTable = computed(() => {
                                 <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Billing' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
+     
 
-                            <!-- <p>Today's Date: {{ formattedTodayDateNow }}</p>
-                            <p>Penalty Days: {{ calculatePenaltyDaysFn(form.repaymentDate, formattedTodayDateNow) }} days</p>
-                            <p>Penalty Months: {{ calculatePenaltyMonthsFn(form.repaymentDate, formattedTodayDateNow) }} month(s)</p> -->
 
                             <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Borrower</Label>
@@ -922,9 +971,12 @@ const filteredLoansForTable = computed(() => {
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="status">Status</Label>
                                 <select style="background: white"  id="status" v-model="form.status" class="w-full rounded border px-3 py-2">
-                                    <option value="Active">Active</option>
-                                    <option value="Paid">Paid</option>
-                                    <option value="Overdue">Overdue</option>
+                                    <option :disabled="role === 'admin'" value="For Approval">For Approval</option> 
+                                    <!-- <option :disabled="role === 'admin'" value="Approved">Approved</option> -->
+                                    <option :disabled="role === 'admin'" value="Active">Approved/Active</option>
+                                    <option :disabled="role === 'admin'" value="Disapproved">Disapproved</option>
+                                    <option :disabled="role === 'management'" value="Paid">Paid</option>
+                                    <option :disabled="role === 'management'" value="Overdue">Overdue</option>
                                     <!-- <option value="Under Maintenance">Under Maintenance</option> -->
                                 </select>
                             </div>
@@ -935,6 +987,28 @@ const filteredLoansForTable = computed(() => {
                             <div class="mb-3">
                                 <Label for="loanDate">Due Date</Label>
                                 <Input style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
+                            </div>
+                            
+
+                            <div class="mb-3 mt-5"  v-if="action === 'edit'">
+                                <h3 class="text-lg font-semibold">Attachments:</h3>
+                            <ul class="ml-4">
+                                <li v-for="(url, index) in attachmentUrls" :key="index">
+                                    <!-- <template v-if="url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.jpeg')">
+                                    <img :src="url" alt="attachment" style="max-width: 200px;" />
+                                    </template>
+                                    <template v-else> -->
+                                    {{index + 1}}. <a :href="url.url" target="_blank" rel="noopener">{{ url.name }}</a>
+                                    <!-- </template> -->
+                                </li>
+                            </ul>
+                            </div>
+                            <div class="mb-3" v-if="action === 'add'">
+                                <Label for="loanDate">Attachment</Label> <br>
+                                <input type="file" multiple @change="handleFiles" />
+                                <p style="font-size: 10px; margin-top: 5px; color: red">Note: Please upload the following loan requirements: Cedula, Barangay Certificate, Application Form, Promissory Note with Collateral Information, Photocopy of Borrower's ID, Photocopy of Co-Maker's ID, and Collateral Requirements.</p>
+
+                                <!-- <Input id="image" type="file" accept="image/*" multiple  @change="handleFileUpload" /> -->
                             </div>
                             <!-- <div class="mb-3">
                                 <Label for="loanDate">Date of Loan Granted</Label>
@@ -1208,6 +1282,8 @@ const filteredLoansForTable = computed(() => {
                 </Dialog>
                 <select id="filter" v-model="filter"  class="ml-2" style="height: 37px">
                     <option value="All">All</option>
+                    <option value="For Approval">For Approval</option>
+                    <option value="Disapproved">Disapproved</option>
                     <option value="Active">Active</option>
                     <option value="Paid">Paid</option>
                     <option value="Overdue">Overdue</option>
@@ -1240,6 +1316,20 @@ const filteredLoansForTable = computed(() => {
                             <div class="mb-3">
                                 <Label for="loanDate">Due Date</Label>
                                 <Input readonly style="background: white"  required type="date" id="repaymentDate" v-model="form.repaymentDate" placeholder="Enter repayment date" />
+                            </div>
+
+                            <div class="mb-3 mt-5"  v-if="action === 'edit'">
+                                <h3 class="text-lg font-semibold">Attachments:</h3>
+                            <ul class="ml-4">
+                                <li v-for="(url, index) in attachmentUrls" :key="index">
+                                    <!-- <template v-if="url.endsWith('.png') || url.endsWith('.jpg') || url.endsWith('.jpeg')">
+                                    <img :src="url" alt="attachment" style="max-width: 200px;" />
+                                    </template>
+                                    <template v-else> -->
+                                    {{index + 1}}. <a :href="url.url" target="_blank" rel="noopener">{{ url.name }}</a>
+                                    <!-- </template> -->
+                                </li>
+                            </ul>
                             </div>
                             <div class="mt-4">
                                 <h3 class="text-lg font-semibold">Loan Details:</h3>

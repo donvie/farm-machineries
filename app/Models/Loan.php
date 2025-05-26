@@ -20,6 +20,7 @@ class Loan extends Model
         'loans',
         'histories',
         'qty',
+        'attachments',
         'dateOfRelease',
         'loanGrantedDate',
         'isFullPayment'
@@ -28,6 +29,7 @@ class Loan extends Model
     protected $casts = [
         'loans' => 'array', // <-- This automatically json_encodes / decodes
         'histories' => 'array', // <-- This automatically json_encodes / decodes
+        'attachments' => 'array', // <-- add this line
     ];
 
     public function user()

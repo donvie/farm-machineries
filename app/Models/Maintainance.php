@@ -20,7 +20,9 @@ class Maintainance extends Model
         'condition',
         'workDone',
         'expenses',
-        'sourceOfFund'
+        'sourceOfFund',
+        'conditionBeforeUse',
+        'conditionAfterUse'
     ];
     
     // ✅ Each maintenance entry belongs to a user

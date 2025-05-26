@@ -72,4 +72,6 @@ require __DIR__.'/maintainance.php';
 require __DIR__.'/loan.php';
 require __DIR__.'/supply.php';
 require __DIR__.'/user.php';
+require __DIR__.'/technician.php';
+
 

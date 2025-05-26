@@ -25,7 +25,10 @@ class Rental extends Model
         'rentFee',
         'attachment',
         'totalHarvest',
-        'startDate'
+        'startDate',
+        'numOfUsed',
+        'conditionbeforeUse',
+        'conditionAfterUse'
     ];
 
     public function user()

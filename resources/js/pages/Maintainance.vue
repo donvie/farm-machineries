@@ -41,8 +41,11 @@ const form = useForm({
     status: 'Pending',
     // completed_date: null,
     remarks: '',
+    conditionBeforeUse: '',
+    conditionAfterUse: '',
     sourceOfFund: '',
     condition: '',
+    condition1: [],
     workDone: '',
     expenses: '',
 });
@@ -214,7 +217,7 @@ const filteredMaintainancesForTable = computed(() => {
                     <DialogTrigger as-child>
                         <Button @click="action = 'add'">Add Maintainance</Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent  class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addMaintainance">
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Status' }}</DialogTitle>
@@ -239,10 +242,6 @@ const filteredMaintainancesForTable = computed(() => {
                                 </select>
                             </div>
 
-                            <div class="mb-3" v-if="action === 'edit'">
-                                <Label for="condition">Condition</Label>
-                                <Input style="background: white" id="condition" v-model="form.condition" placeholder="Enter Condition" />
-                            </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="workDone">Source of fund</Label>
@@ -258,10 +257,25 @@ const filteredMaintainancesForTable = computed(() => {
                                 <Label for="expenses">Expenses</Label>
                                 <Input style="background: white" id="expenses" v-model="form.expenses" placeholder="Enter Expenses" />
                             </div>
-
+                            <div class="mb-3" >
+                                <Label for="type">Condition before maitainance</Label>
+                                <Input style="background: white" required id="type" v-model="form.conditionBeforeUse" placeholder="Enter Condition before maitainance" />
+                            </div>
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="condition">Condition after maitainance</Label>
+                                <!-- <pre>{{form.condition1}}</pre> -->
+                                <Input  style="background: white" id="condition" v-model="form.condition" placeholder="Enter Condition after maitainance" />
+                               
+                                <!-- <select multiple style="background: white" id="status" v-model="form.condition1" class="w-full rounded border px-3 py-2">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Under Maintenance">Under Maintenance</option>
+                                    <option value="Completed">Completed</option>
+                                </select> -->
+                            </div>
+                            <div class="mb-3">
                             <Label for="year_acquired">Maintenance Date</Label>
                             <Input style="background: white" type="date" id="year_acquired" v-model="form.maintainance_date" placeholder="Enter year acquired" />
-
+                            </div>
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="completed_date">Completed Date</Label>
                                 <Input style="background: white" type="date" id="completed_date" v-model="form.completed_date" placeholder="Enter Completed Date" />
@@ -313,6 +327,9 @@ const filteredMaintainancesForTable = computed(() => {
 
                                 <Label for="type">Status</Label>
                                 <Input style="background: white" readonly required id="type" v-model="form.status" placeholder="Enter machine type" />
+
+                                <Label for="type">Condition before maitainance</Label>
+                                <Input style="background: white" readonly required id="type" v-model="form.conditionBeforeUse" placeholder="Enter machine type" />
 
                                 <Label for="type">Work to do</Label>
                                 <Input style="background: white" readonly required id="type" v-model="form.remarks" placeholder="Enter machine type" />

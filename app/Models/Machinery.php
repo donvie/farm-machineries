@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Maintainance;
 use App\Models\Rental;
+use App\Models\Technician;
 
 class Machinery extends Model
 {
@@ -42,5 +43,10 @@ class Machinery extends Model
 
     public function rentals() {
         return $this->hasMany(Rental::class, 'machinery_id', 'id');
+    }
+
+    
+    public function technicians() {
+        return $this->hasMany(Technician::class, 'machinery_id', 'id');
     }
 }

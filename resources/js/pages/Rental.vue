@@ -42,6 +42,7 @@ const headers = [
     'Operator',
     'Machine Name',
     'Serial No.',
+    'Condition before use',
     'Condition after use',
     'Rent',
     // 'Other Expenses',
@@ -56,6 +57,8 @@ const form = useForm({
     machinery_id: null,
     status: 'Pending',
     attachment: '',
+    numOfUsed: '',
+    conditionbeforeUse: '',
     rent: '',
     otherExpenses: '',
     completedDate: '',
@@ -108,7 +111,7 @@ const addRental = (e: Event) => {
         }
 
         if (form.status === 'Returned') {
-            form.completedDate = format(new Date(), 'yyyy-MM-dd');
+            // form.completedDate = format(new Date(), 'yyyy-MM-dd');
             router.patch(route('machinery.update', form.machinery.id), { status: 'Available' });
         }
         router.patch(route('rental.update', form.id), form, {
@@ -320,6 +323,7 @@ const filteredRentalsForTable = computed(() => {
     operator: rental.operator?.name || '',
     machine_name: rental?.machinery?.machine_name || '',
     serial: rental.machinery?.serial || '',
+    conditionbeforeUse: rental?.conditionbeforeUse || '',
     condition: rental?.condition || '',
     rent: rental?.rent || '',
     // otherExpenses: rental?.otherExpenses || '',
@@ -448,6 +452,10 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                     </option>
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <Label for="condition">Condition before use</Label>
+                                <Input style="background: white" id="condition" v-model="form.conditionbeforeUse" placeholder="Enter Condition before use" />
+                            </div>
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="condition">Condition after use</Label>
@@ -476,10 +484,26 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                 type="date" id="repaymentDate" v-model="form.startDate" placeholder="Enter Work start date" />
                             </div>
 
+
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="loanDate">Work end date</Label>
+                                <!-- <pre>{{props?.rentals?.data.map(d => d.startDate)}}</pre> -->
+                                <Input 
+                                @change="validateDate"
+                                :min="todayFormatted"
+                                style="background: white"
+                                type="date" id="repaymentDate" v-model="form.completedDate" placeholder="Enter Work end date" />
+                            </div>
+
                             <!-- <div class="mb-3">
                                 <Label for="last_maintenance_date">Rent Date</Label>
                                 <Input required type="date" id="rentDate" v-model="form.date_of_rent" placeholder="Enter Rent Date" />
                             </div> -->
+
+                            <div class="mb-3" v-if="action === 'edit'"> 
+                                <Label for="name">Number of hours used</Label>
+                                <Input style="background: white" id="remarks" v-model="form.numOfUsed" placeholder="Enter Number of hour used" />
+                            </div>
 
                             <div class="mb-3">
                                 <Label for="name">Remarks</Label>
@@ -606,6 +630,12 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                                     </option>
                                 </select>
                             </div>
+                            
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="condition">Condition before use</Label>
+                                <Input style="background: white" readonly id="condition" v-model="form.conditionbeforeUse" placeholder="Enter Condition after use" />
+                            </div>
+
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="condition">Condition after use</Label>

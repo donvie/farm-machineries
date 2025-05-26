@@ -253,6 +253,7 @@ const downloadPDF = () => {
             </button>
             <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
             <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
+            <button v-if="title === 'Machinery'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>
         </tr>
       </tbody>

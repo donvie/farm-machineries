@@ -13,11 +13,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
+import axios from 'axios';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Machinery', href: '/machinery' }];
 
 const isDialogOpen = ref(false);
 const isDialogScannerOpen = ref(false);
+const isHide1 = ref(false);
+const isHide2 = ref(false);
+const isHide3 = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
@@ -31,10 +35,13 @@ const headersViewRental = [
     'Rent',
     'Other Expenses',
     'Status',
-    'Borrow Date',
+    'Borrow Date','Work start date',
     'Completed Date',
     'Remarks',
 ];
+
+
+const headers2323 = ['Id', 'Status', 'Start Date', 'Completed Date', 'Remarks'];
 
 const props = defineProps<{
     name?: string;
@@ -126,6 +133,32 @@ const onQrCode = () => {
             console.warn('Scanning error:', error);
         }
     });
+};
+
+const handleNotifySMS = async (item) => {
+    // console.log('item', item);
+    try {
+    // alert('Sending SMS...');
+        const response = await axios.post('/send-email', {
+            // Change route
+            email: 'hannalykaramos0805+technician@gmail.com', // Replace with dynamic email from item if needed
+            subject: 'Maintenance Required for Machinery',
+            message: `
+            I hope this message finds you well—please be informed that Machine: ${item.machine_name} requires maintenance; kindly prioritize this request and let us know your earliest availability for inspection and repair—feel free to reach out if any tools or parts are needed.
+           `
+            
+        });
+
+        if (response.data.success) {
+            alert('Email sent successfully!');
+        } else {
+            alert('Failed to send email.');
+        }
+    } catch (error) {
+        console.log('error', error);
+        alert('Error sending email.');
+    }
+
 };
 
 const saveMachinery = (e: Event) => {
@@ -326,7 +359,7 @@ const filteredMachineriesForTable = computed(() => {
                                     <Button variant="secondary" @click="closeModal">Cancel</Button>
                                 </DialogClose>
                                 <Button :disabled="form.processing">
-                                    <button type="submit">Submit</button>
+                                    <Button type="submit">Submit</button>
                                 </Button>
                             </DialogFooter>
                         </form>
@@ -344,7 +377,7 @@ const filteredMachineriesForTable = computed(() => {
                         <Button>View Machinery</Button>
                     </DialogTrigger> -->
                     <DialogContent class="h-screen max-h-screen w-screen max-w-none overflow-y-auto">
-                        <form @submit.prevent="saveMachinery">
+                        <div>
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle class="mb-10">View Machinery</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new machinery. </DialogDescription> -->
@@ -393,11 +426,18 @@ const filteredMachineriesForTable = computed(() => {
     <Label for="year_acquired">Year Acquired</Label>
     <Input readonly style="background: white" required type="date" id="year_acquired" v-model="form.year_acquired" placeholder="Enter year acquired" />
   </div>
+  
+  <div>
+    <Label for="year_acquired">Number of hours used</Label>
+    <Input v-if="selectedItem && selectedItem.rentals" readonly style="background: white" required id="branchAddress" :placeholder="selectedItem.rentals.filter(dd => dd.status === 'Returned').reduce((sum, item) => sum + Number(item.numOfUsed || 0), 0)" />
+  </div>
 </div>
 
-                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules</DialogTitle>
+                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules 
+                            <Button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide1 =! isHide1">{{isHide1 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
 
                             <Table
+                                v-if="isHide1"
                                 :headers="headersView"
                                 :data="selectedItem?.maintainances"
                                 :filterData="
@@ -418,11 +458,13 @@ const filteredMachineriesForTable = computed(() => {
                                 :perPage="10"
                             />
 
-                            <DialogTitle class="py-10">List of Rentals</DialogTitle>
+                            <DialogTitle class="py-10">List of Rentals  <Button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide2 =! isHide2">{{isHide1 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
+                           
                             <Table
                                 title="Rental"
                                 :headers="headersViewRental"
                                 :data="selectedItem?.rentals"
+                                v-if="isHide2"
                                 :filterData="
                                     selectedItem?.rentals?.map((rental) => ({
                                         id: rental.id || '',
@@ -434,6 +476,7 @@ const filteredMachineriesForTable = computed(() => {
                                         otherExpenses: rental?.otherExpenses || '',
                                         status: rental?.status || '',
                                         created_at: formattedDate(rental?.created_at, 'yyyy-MM-dd') || '',
+                                        startDate: rental.startDate,
                                         completed_date: rental.completedDate,
                                         remarks: rental?.remarks || '',
                                     }))
@@ -443,7 +486,29 @@ const filteredMachineriesForTable = computed(() => {
                                 :isRowClickable="true"
                                 :perPage="10"
                             />
-                        </form>
+
+                            <DialogTitle class="py-10">List of technician routine checking every week  <Button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide3 =! isHide3">{{isHide1 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
+                           
+                            <Table
+                                title="List of technician routine checking every week"
+                                :headers="headers2323"
+                                :data="selectedItem?.technicians"
+                                v-if="isHide3"
+                                :filterData="
+                                    selectedItem?.technicians?.map((rental) => ({
+    id: rental.id,
+    status: rental.status,
+    starDate:  rental.startDate,
+    completedDate: rental.completedDate,
+    remarks: rental.remarks,
+                                    }))
+                                "
+                                :isHasFilter="true"
+                                :noActions="true"
+                                :isRowClickable="true"
+                                :perPage="10"
+                            />
+                        </div>
                     </DialogContent>
                 </Dialog>
 
@@ -467,7 +532,9 @@ const filteredMachineriesForTable = computed(() => {
                 @viewItem="handleView"
                 @downloadQrCode="handleDownloadQrCode"
                 :isRowClickable="true"
+                @notifySMS="handleNotifySMS"
                 :isHasDeleteBtn="true"
+                :isHasNotifySMSBtn="true"
                 :isHasEditBtn="true"
                 :isHasFilter="true"
                 :isHasViewBtn="true"

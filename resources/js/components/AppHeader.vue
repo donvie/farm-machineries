@@ -29,8 +29,9 @@ const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
-const page = usePage();
+const page = useP age();
 const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
 
 const isCurrentRoute = (url: string) => {
     return page.url === url;

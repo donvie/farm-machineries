@@ -36,26 +36,26 @@ class LoanController extends Controller
 
         $today = Carbon::today();
 
-        $loans = Loan::with(['user'])->get()->map(function ($loan) use ($today) {
-            if (!empty($loan->repaymentDate) && $loan->status !== 'Paid') {
-                $repaymentDate = Carbon::parse($loan->repaymentDate);
+        // $loans = Loan::with(['user'])->get()->map(function ($loan) use ($today) {
+        //     if (!empty($loan->repaymentDate) && $loan->status !== 'Paid') {
+        //         $repaymentDate = Carbon::parse($loan->repaymentDate);
         
-                logger("Repayment Date: $repaymentDate, Today: $today");
+        //         logger("Repayment Date: $repaymentDate, Today: $today");
         
-                // If repaymentDate is today or earlier, it's overdue
-                if ($repaymentDate->lessThanOrEqualTo($today)) {
-                    logger("Marked as overdue");
-                    $loan->status = 'Overdue';
-                    // $loan->save(); // ⬅️ Important to persist the change
-                } else {
-                    logger("Still within due date");
-                }
-            }
+        //         // If repaymentDate is today or earlier, it's overdue
+        //         if ($repaymentDate->lessThanOrEqualTo($today)) {
+        //             logger("Marked as overdue");
+        //             $loan->status = 'Overdue';
+        //             // $loan->save(); // ⬅️ Important to persist the change
+        //         } else {
+        //             logger("Still within due date");
+        //         }
+        //     }
         
-            return $loan;
-        });
+        //     return $loan;
+        // });
         
-        // $loans = Loan::with(['user'])->get();
+        $loans = Loan::with(['user'])->get();
         $users = User::all(); // Load all users
         $supplies = Supply::all(); // Load all users
 
@@ -71,6 +71,7 @@ class LoanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'files.*' => 'nullable|file|max:10240', // change `required` to `nullable`
             'user_id' => 'required|numeric',
             // 'amount' => 'required|numeric',
             // 'purpose' => 'required|string',
@@ -88,11 +89,22 @@ class LoanController extends Controller
         if ($request->has('histories')) {
             $data['histories'] = json_decode($request->histories, true); // convert JSON string to array
         }
-    
-        // Convert 'loans' array to JSON if it exists
-        // if ($request->has('loans') && is_array($request->loans)) {
-            // $data['loans'] = json_encode($request->loans);
-        // }
+        $filePaths = [];
+
+        if ($request->hasFile('files')) {
+            foreach ($request->file('files') as $file) {
+                $path = $file->store('images', 'public'); // storage/app/public/images/...
+        
+                $filePaths[] = [
+                    'name' => $file->getClientOriginalName(), // original file name
+                    'url' => $path, // relative storage path
+                ];
+            }
+        }
+        
+        $data['attachments'] = json_encode($filePaths);
+        
+
     
         Loan::create($data);
     

@@ -18,6 +18,9 @@ const isDialogOpen = ref(false);
 const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const headersView = ['Id', 'Name', 'Status', 'Remarks'];
+const isHide1 = ref(false);
+const isHide2 = ref(false);
+const isHide3 = ref(false);
 const headersViewRental = [
     'Id',
     'Lessee',
@@ -200,6 +203,7 @@ const handleFileUpload = (event: Event) => {
                                 <select  style="background: white"  id="status" v-model="form.role" class="w-full rounded border px-3 py-2">
                                     <option value="user">User</option>
                                     <option value="admin">Admin</option>
+                                    <option value="management">Management</option>
                                     <option value="technician">Technician</option>
                                 </select>
 
@@ -258,7 +262,7 @@ const handleFileUpload = (event: Event) => {
                         <Button>View User</Button>
                     </DialogTrigger> -->
                     <DialogContent class="h-screen max-h-screen w-screen max-w-none overflow-y-auto">
-                        <form @submit.prevent="saveUser">
+                        <div >
                             <DialogHeader class="mb-3 space-y-3">
                                 <DialogTitle class="mb-10">View Member</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new user. </DialogDescription> -->
@@ -277,8 +281,9 @@ const handleFileUpload = (event: Event) => {
                                          style="background: white"  readonly required id="type" v-model="selectedItem.email" placeholder="Email" />
                             </div>
 
-                            <DialogTitle class="py-10">List of Rentals</DialogTitle>
+                            <DialogTitle class="py-10">List of Rentals <button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide1 =! isHide1">{{isHide1 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
                             <Table
+                                v-if="isHide1"
                                 title="Rental"
                                 :headers="headersViewRental"
                                 :data="selectedItem?.rentals"
@@ -301,9 +306,10 @@ const handleFileUpload = (event: Event) => {
                                 :perPage="10"
                             />
 
-                            <DialogTitle class="py-10">List of Loans</DialogTitle>
+                            <DialogTitle class="py-10">List of Loans <button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide2 =! isHide2">{{isHide2 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
                             <Table
                                 title="Rental"
+                                v-if="isHide2"
                                 :headers="headersViewLoans"
                                 :data="selectedItem?.loans"
                                 :filterData="
@@ -320,9 +326,10 @@ const handleFileUpload = (event: Event) => {
                                 :noActions="true"
                                 :perPage="10"
                             />
-                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules</DialogTitle>
+                            <DialogTitle class="py-10">List of Preventive Maintenance Schedules <button class="px-2 py-1 text-white bg-purple-500 rounded" @click="isHide3 =! isHide3">{{isHide3 ? 'Hide details' : 'Show details'}}</button></DialogTitle>
 
                             <Table
+                                v-if="isHide3"
                                 :headers="headersView1"
                                 :data="selectedItem?.maintainances"
                                 :filterData="
@@ -341,7 +348,7 @@ const handleFileUpload = (event: Event) => {
                                 :noActions="true"
                                 :perPage="10"
                             />
-                        </form>
+                        </div>
                     </DialogContent>
                 </Dialog>
             </div>

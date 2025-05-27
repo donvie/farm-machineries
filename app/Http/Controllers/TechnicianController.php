@@ -14,10 +14,11 @@ class TechnicianController extends Controller
      */
     public function index()
     {
-        $technicians = Technician::paginate(10); // Paginated data
+        $technicians = Technician::with(['machinery'])->get(); // Paginated data
         $machineries = Machinery::all(); // Load all users
         return Inertia::render('Technician', [
-            'technicians' => $technicians  ,
+            // 'technicians' => $technicians  ,
+            'technicians' => ['data' => $technicians],
             'machineries' => $machineries, // Add users to the response
         ]);
     }

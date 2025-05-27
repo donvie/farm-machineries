@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { onMounted, ref, computed} from 'vue';
+import dayjs from 'dayjs';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -33,15 +34,46 @@ const selectedItem = ref({});
 const isDialogViewOpen = ref(false);
 const action = ref('');
 
-const headers = ['Id', 'Status', 'Start Date', 'Completed Date', 'Remarks'];
+const availableFields = ref([
+    'Engine oil',
+    'Coolant',
+    'Hydraulic fluid',
+]);
+
+const availableFields1 = ref([
+    'Tires',
+    'Belts',
+    'Hoses'
+]);
+
+const toggleField1 = (field: string) => {
+    const index = form.field1.indexOf(field);
+    if (index > -1) {
+        form.field1.splice(index, 1); // remove
+    } else {
+        form.field1.push(field); // add
+    }
+};
+
+const toggleField = (field: string) => {
+    const index = form.fields.indexOf(field);
+    if (index > -1) {
+        form.fields.splice(index, 1); // remove
+    } else {
+        form.fields.push(field); // add
+    }
+};
+
+const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Start Date', 'Completed Date', 'Remarks'];
 const form = useForm({
     name: '',
     remarks: '',
-    status: '',
+    status: 'Ongoing',
     completedDate: '',
     startDate: '',
     machinery_id: '',
-    fields: '' // ← add this
+    field1: [] as string[], // ← update to array
+    fields: [] as string[], // ← update to array
 });
 const filter = ref('All');
 
@@ -119,6 +151,32 @@ const handleView = (item: any) => {
     });
 };
 
+
+const addRoutingChecking = (itemId: string) => {
+    props.machineries.forEach((element) => {
+        const form = {
+            name: '',
+            remarks: '',
+            status: 'Ongoing',
+            completedDate: '',
+            startDate: dayjs().format('YYYY-MM-DD'), // 👈 This gives "2025-05-27"
+            machinery_id: element.id,
+            field1: [] as string[],
+            fields: [] as string[],
+        };
+
+        router.post(route('technician.store'), form, {
+            preserveScroll: true,
+            onSuccess: () => {
+                console.log(`Created routing for machinery ID: ${element.id}`);
+            },
+            onError: (errors) => console.error('Form errors:', errors),
+            onFinish: () => closeModal(),
+        });
+    });
+};
+
+
 const handleDelete = (itemId: string) => {
     console.log('itemIditemId', itemId);
     if (!confirm('Are you sure you want to delete this technician?')) {
@@ -146,8 +204,12 @@ const filteredMaintainances = computed(() => {
 });
 
 const filteredMaintainancesForTable = computed(() => {
+    console.log('filteredMadd', filteredMaintainances.value)
   return filteredMaintainances.value.map((technician) => ({
     id: technician.id,
+    machineName: technician.machinery?.machine_name,
+    brand: technician.machinery?.brand,
+    serial: technician.machinery?.serial,
     status: technician.status,
     starDate:  technician.startDate,
     completedDate: technician.completedDate,
@@ -162,17 +224,47 @@ const filteredMaintainancesForTable = computed(() => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
+                <Button @click="addRoutingChecking()">Add routine checking</Button>
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add routine checking</Button>
+                        <!-- <Button @click="action = 'add'">Add routine checking</Button> -->
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="addTechnician">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Technician' : 'Edit Technician' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Routine Checking' : 'Edit Routing Checking' }}</DialogTitle>
                             </DialogHeader>
+<div class="mb-3">
+    <Label>Check fluid levels</Label>
+    <div class="space-y-2">
+        <div v-for="field in availableFields" :key="field" class="flex items-center gap-2">
+            <input
+                type="checkbox"
+                :id="field"
+                :value="field"
+                :checked="form.fields.includes(field)"
+                @change="toggleField(field)"
+            />
+            <label :for="field">{{ field }}</label>
+        </div>
+    </div>
+</div><div class="mb-3">
+    <Label>Other parts</Label>
+    <div class="space-y-2">
+        <div v-for="field in availableFields1" :key="field" class="flex items-center gap-2">
+            <input
+                type="checkbox"
+                :id="field"
+                :value="field"
+                :checked="form.field1.includes(field)"
+                @change="toggleField1(field)"
+            />
+            <label :for="field">{{ field }}</label>
+        </div>
+    </div>
+</div>
 
-                            <div class="mb-3">
+                            <div class="mb-3" v-if="action === 'add'">
                                 <Label for="user">Machinery</Label>
                                 <select style="background: white"  :disabled="action === 'edit'" id="user" v-model="form.machinery_id" class="w-full rounded border px-3 py-2">
                                     <option disabled value="">Select a machinery</option>
@@ -181,10 +273,16 @@ const filteredMaintainancesForTable = computed(() => {
                                     </option>
                                 </select>
                             </div>
+
+                            
+                            <div class="mb-3" v-if="action === 'edit'">
+                                <Label for="user">Machinery</Label>
+                                <Input style="background: white" readonly id="startDate" :placeholder="selectedItem.machinery?.machine_name" />
+                            </div>
                             
                             <div class="mb-3">
                                 <Label for="completedDate">Start Date</Label>
-                                <Input style="background: white" type="date" id="startDate" v-model="form.startDate" placeholder="Enter Completed Date" />
+                                <Input :readonly="action === 'edit'" style="background: white" type="date" id="startDate" v-model="form.startDate" placeholder="Enter Completed Date" />
                             </div>
 
                             
@@ -203,7 +301,7 @@ const filteredMaintainancesForTable = computed(() => {
 
                             <div class="mb-3" v-if="action === 'edit'">
                                 <Label for="item">Remarks</Label>
-                                <Input  style="background: white"  id="item" v-model="form.remarks" placeholder="Item" />
+                                <Input  style="background: white"  id="item" v-model="form.remarks" placeholder="Remarks" />
                             </div>
 
 
@@ -228,7 +326,7 @@ const filteredMaintainancesForTable = computed(() => {
                     <DialogContent>
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>View Technician</DialogTitle>
+                                <DialogTitle>View Routing Checking</DialogTitle>
                             </DialogHeader>
 
                             <div class="grid gap-4">

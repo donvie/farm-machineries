@@ -17,7 +17,13 @@ class Technician extends Model
         'machinery_id',
         'startDate',
         'completedDate',
+        'field1',
         'fields' // ✅ Include this
+    ];
+
+    protected $casts = [
+        'fields' => 'array',
+        'field1' => 'array',
     ];
 
     public function machinery()

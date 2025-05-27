@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('technicians', function (Blueprint $table) {
-            // $table->string('startDate')->nullable();
-            // $table->string('completedDate')->nullable();
+        Schema::table('loans', function (Blueprint $table) {
             //
+            $table->string('name')->nullable()->change();
         });
     }
 
@@ -23,10 +22,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('technicians', function (Blueprint $table) {
-            // $table->dropColumn('startDate');
-            // $table->dropColumn('completedDate');
+        Schema::table('loans', function (Blueprint $table) {
             //
+            $table->string('name')->nullable(false)->change();
         });
     }
 };

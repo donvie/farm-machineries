@@ -64,7 +64,7 @@ const toggleField = (field: string) => {
     }
 };
 
-const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Start Date', 'Completed Date', 'Remarks'];
+const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Check fluid levels', 'Other Parts', 'Start Date', 'Completed Date', 'Remarks'];
 const form = useForm({
     name: '',
     remarks: '',
@@ -211,6 +211,8 @@ const filteredMaintainancesForTable = computed(() => {
     brand: technician.machinery?.brand,
     serial: technician.machinery?.serial,
     status: technician.status,
+    fields: technician.fields.toString(),
+    field1: technician.field1.toString(),
     starDate:  technician.startDate,
     completedDate: technician.completedDate,
     remarks: technician.remarks,

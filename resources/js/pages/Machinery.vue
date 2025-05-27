@@ -41,7 +41,7 @@ const headersViewRental = [
 ];
 
 
-const headers2323 = ['Id', 'Status', 'Start Date', 'Completed Date', 'Remarks'];
+const headers2323 =['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Check fluid levels', 'Other Parts', 'Start Date', 'Completed Date', 'Remarks'];
 
 const props = defineProps<{
     name?: string;
@@ -497,7 +497,12 @@ const filteredMachineriesForTable = computed(() => {
                                 :filterData="
                                     selectedItem?.technicians?.map((rental) => ({
     id: rental.id,
+    machineName: rental.machinery?.machine_name,
+    brand: rental.machinery?.brand,
+    serial: rental.machinery?.serial,
     status: rental.status,
+    fields: rental.fields.toString(),
+    field1: rental.field1.toString(),
     starDate:  rental.startDate,
     completedDate: rental.completedDate,
     remarks: rental.remarks,

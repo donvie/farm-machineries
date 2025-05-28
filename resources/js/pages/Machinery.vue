@@ -14,9 +14,13 @@ import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
 import axios from 'axios';
+import { Link, usePage } from '@inertiajs/vue3';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Machinery', href: '/machinery' }];
 
+const page = usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
 const isDialogOpen = ref(false);
 const isDialogScannerOpen = ref(false);
 const isHide1 = ref(false);
@@ -84,6 +88,106 @@ const result = ref('');
 const videoElement = ref(null);
 const filter = ref('All');
 
+onMounted(() => {
+    props?.machineries?.data.forEach(element => {
+        const totalUsed = parseInt(
+            element.rentals
+                .filter(dd => dd.status === 'Returned')
+                .reduce((sum, item) => sum + Number(item.numOfUsed || 0), 0)
+            );
+
+            if (totalUsed === 200  && element.count === '') {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+            if (totalUsed === 400  && parseInt(element.count) === 200) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+
+
+            if (totalUsed === 600 && parseInt(element.count) === 400) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+            
+
+            if (totalUsed === 800  && parseInt(element.count) ===600) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+            
+
+            if (totalUsed === 1000  && parseInt(element.count) === 800) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+            if (totalUsed === 1200  && parseInt(element.count) === 1000) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+
+            if (totalUsed === 1400  && parseInt(element.count) === 1200) {
+                handleNotifySMS(element)
+                element.count = totalUsed
+        
+                router.patch(route('machinery.update', element.id), element, {
+                    preserveScroll: true,
+                    onSuccess: () => closeModal(),
+                    onError: (errors) => console.error('Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            }
+    });
+});
+
 const onScan = () => {
     isDialogScannerOpen.value = true;
     setTimeout(() => {
@@ -150,9 +254,9 @@ const handleNotifySMS = async (item) => {
         });
 
         if (response.data.success) {
-            alert('Email sent successfully!');
+            // alert('Email sent successfully!');
         } else {
-            alert('Failed to send email.');
+            // alert('Failed to send email.');
         }
     } catch (error) {
         console.log('error', error);
@@ -292,7 +396,7 @@ const filteredMachineriesForTable = computed(() => {
                 <Button @click="onScan()" class="mr-2">QR code scanner</Button>
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add Machinery</Button>
+                        <Button v-if="role !== 'management'"  @click="action = 'add'">Add Machinery</Button>
                     </DialogTrigger>
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="saveMachinery">

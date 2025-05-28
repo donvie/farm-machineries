@@ -9,12 +9,17 @@ import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogT
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
+import { Link, usePage } from '@inertiajs/vue3';
 
 import { format, parseISO } from 'date-fns';
 
-const breadcrumbs: BreadcrumbItem[] = [{ title: 'Maintainance', href: '/maintainance' }];
+const breadcrumbs: BreadcrumbItem[] = [{ title: 'Maintenance', href: '/maintainance' }];
 
 const isDialogOpen = ref(false);
+
+const page = usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
 
 const props = defineProps<{
     name?: string;
@@ -175,7 +180,7 @@ const handleDelete = (itemId: string) => {
     router.delete(route('maintainance.destroy', itemId), {
         preserveScroll: true,
         onSuccess: () => {
-            console.log('Maintainance deleted successfully');
+            console.log('Maintenance deleted successfully');
         },
         onError: (errors) => console.error('Deletion error:', errors),
     });
@@ -215,12 +220,12 @@ const filteredMaintainancesForTable = computed(() => {
                 <!-- {{ form.completed_date }} -->
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add Maintainance</Button>
+                        <Button  v-if="role !== 'management'" @click="action = 'add'">Add Maintenance</Button>
                     </DialogTrigger>
                     <DialogContent  class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addMaintainance">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Maintainance' : 'Edit Status' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Maintenance' : 'Edit Status' }}</DialogTitle>
                             </DialogHeader>
 
                             <div class="mb-3">
@@ -310,7 +315,7 @@ const filteredMaintainancesForTable = computed(() => {
                     <DialogContent>
                         <form @submit.prevent="saveMachinery">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>View Maintainance</DialogTitle>
+                                <DialogTitle>View Maintenance</DialogTitle>
                             </DialogHeader>
 
                             <div class="grid gap-4">
@@ -345,7 +350,7 @@ const filteredMaintainancesForTable = computed(() => {
                 </select>
             </div>
             <Table
-                title="Maintainance"
+                title="Maintenance"
                 :headers="headers"
                 :data="filteredMaintainances"
                 :filterData="filteredMaintainancesForTable"

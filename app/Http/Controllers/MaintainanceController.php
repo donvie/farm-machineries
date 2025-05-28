@@ -42,7 +42,7 @@ class MaintainanceController extends Controller
 
         Maintainance::create($request->all());
 
-        return back()->with('success', 'Maintainance added successfully!');
+        return back()->with('success', 'Maintenance added successfully!');
     }
 
     /**
@@ -65,7 +65,7 @@ class MaintainanceController extends Controller
 
         $maintainance->update($request->all());
 
-        return back()->with('success', 'Maintainance updated successfully!');
+        return back()->with('success', 'Maintenance updated successfully!');
     }
 
     /**
@@ -74,6 +74,6 @@ class MaintainanceController extends Controller
     public function destroy(Maintainance $maintainance)
     {
         $maintainance->delete();
-        return back()->with('success', 'Maintainance deleted successfully!');
+        return back()->with('success', 'Maintenance deleted successfully!');
     }
 }

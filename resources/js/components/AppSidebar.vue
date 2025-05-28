@@ -68,7 +68,7 @@ const mainNavItems1: NavItem[] = [
         icon: Tractor,
     },
     {
-        title: 'Maintainance',
+        title: 'Maintenance ',
         href: '/maintainance',
         icon: Construction,
     },
@@ -110,12 +110,12 @@ const mainNavItems2: NavItem[] = [
         icon: Tractor,
     },
     {
-        title: 'Maintainance',
+        title: 'Maintenance ',
         href: '/maintainance',
         icon: Construction,
     },
     {
-        title: 'Routing checking',
+        title: 'Routine checking',
         href: '/technician',
         icon: List,
     },

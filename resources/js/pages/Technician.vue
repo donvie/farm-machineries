@@ -115,6 +115,13 @@ const addTechnician = (e: Event) => {
     }
 };
 
+onMounted(() => {
+    // if (props?.technicians?.data.length === 0) {
+
+    addRoutingChecking()
+    // } 
+});
+
 const closeModal = () => {
     form.clearErrors();
     form.reset();
@@ -151,27 +158,63 @@ const handleView = (item: any) => {
     });
 };
 
+const getAllMondays = (start: string) => {
+    const startDate = dayjs(start);
+    const today = dayjs();
+    const mondays: string[] = [];
 
-const addRoutingChecking = (itemId: string) => {
-    props.machineries.forEach((element) => {
-        const form = {
-            name: '',
-            remarks: '',
-            status: 'Ongoing',
-            completedDate: '',
-            startDate: dayjs().format('YYYY-MM-DD'), // 👈 This gives "2025-05-27"
-            machinery_id: element.id,
-            field1: [] as string[],
-            fields: [] as string[],
-        };
+    // Find the first Monday on or after the start date
+    let current = startDate.day() === 1 ? startDate : startDate.add((8 - startDate.day()) % 7, 'day');
 
-        router.post(route('technician.store'), form, {
-            preserveScroll: true,
-            onSuccess: () => {
-                console.log(`Created routing for machinery ID: ${element.id}`);
-            },
-            onError: (errors) => console.error('Form errors:', errors),
-            onFinish: () => closeModal(),
+    while (current.isBefore(today) || current.isSame(today, 'day')) {
+        mondays.push(current.format('YYYY-MM-DD'));
+        current = current.add(1, 'week');
+    }
+
+    return mondays;
+};
+
+const addRoutingChecking = () => {
+    // Extract existing combinations of startDate and machineId
+    const existing = props?.technicians?.data.map(dd => ({
+        startDate: dd.startDate,
+        machineId: dd.machinery.id,
+    }));
+
+    const mondays = getAllMondays('2025-05-04'); // Generate all Mondays from May 4, 2025
+    console.log('Generated Mondays:', mondays);
+
+    props.machineries.forEach((machinery) => {
+        mondays.forEach((monday) => {
+            // Check if this machinery already has a record for the given Monday
+            const exists = existing.some(entry =>
+                entry.machineId === machinery.id &&
+                dayjs(entry.startDate).isSame(monday, 'day')
+            );
+
+            if (!exists) {
+                const form = {
+                    name: '',
+                    remarks: '',
+                    status: 'Ongoing',
+                    completedDate: '',
+                    startDate: monday,
+                    machinery_id: machinery.id,
+                    field1: [] as string[],
+                    fields: [] as string[],
+                };
+
+                router.post(route('technician.store'), form, {
+                    preserveScroll: true,
+                    onSuccess: () => {
+                        console.log(`✅ Created routing for machinery ID: ${machinery.id} on ${monday}`);
+                    },
+                    onError: (errors) => console.error('❌ Form errors:', errors),
+                    onFinish: () => closeModal(),
+                });
+            } else {
+                console.log(`⚠️ Skipped: routing already exists for machinery ID: ${machinery.id} on ${monday}`);
+            }
         });
     });
 };
@@ -222,11 +265,11 @@ const filteredMaintainancesForTable = computed(() => {
 </script>
 
 <template>
-    <Head title="Routing checking" />
+    <Head title="Routine checking" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-4">
             <div class="my-4">
-                <Button @click="addRoutingChecking()">Add routine checking</Button>
+                <!-- <Button @click="addRoutingChecking()">Add routine checking</Button> -->
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
                         <!-- <Button @click="action = 'add'">Add routine checking</Button> -->
@@ -234,7 +277,7 @@ const filteredMaintainancesForTable = computed(() => {
                     <DialogContent>
                         <form @submit.prevent="addTechnician">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Routine Checking' : 'Edit Routing Checking' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Routine Checking' : 'View Routing Checking' }}</DialogTitle>
                             </DialogHeader>
 <div class="mb-3">
     <Label>Check fluid levels</Label>

@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
 
-const page = useP age();
+const page = usePage();
 const auth = computed(() => page.props.auth);
 const role = computed(() => page.props.auth.user.role);
 

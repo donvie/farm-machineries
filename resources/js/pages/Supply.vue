@@ -10,11 +10,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 
+import { Link, usePage } from '@inertiajs/vue3';
 import { format, parseISO } from 'date-fns';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Supply', href: '/supply' }];
 
 const isDialogOpen = ref(false);
+const page = usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
+
 
 const props = defineProps<{
     name?: string;
@@ -164,7 +169,7 @@ const filteredMaintainancesForTable = computed(() => {
                 <!-- {{ form.completed_date }} -->
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add Supply</Button>
+                        <Button v-if="role !== 'management'" @click="action = 'add'">Add Supply</Button>
                     </DialogTrigger>
                     <DialogContent>
                         <form @submit.prevent="addSupply">

@@ -29,7 +29,8 @@ class Machinery extends Model
         // 'costPerMachine',
         'condition',
         'workDone',
-        'expenses'
+        'expenses',
+        'count'
     ];
 
     /**

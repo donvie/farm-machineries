@@ -244,8 +244,11 @@ const downloadPDF = () => {
             <button v-if="props.isHasDeleteBtn" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
             <button v-if="props.isHasMarkAsAvailableBtn" @click.stop="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
             <button v-if="props.isHasEditBtn && row.status !== 'Returned'" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">
-              <span v-if="title === 'Maintainance'">
+              <span v-if="title === 'Maintenance'">
                 Update status
+              </span>
+              <span v-else-if="title === 'Technician'">
+                View
               </span>
               <span v-else>
                 {{title === 'Loan' || title === 'Rental' ? 'Billing' : 'Edit' }}

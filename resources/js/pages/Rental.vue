@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
+import { Link, usePage } from '@inertiajs/vue3';
 import dayjs from 'dayjs'; // Make sure to install dayjs: npm install dayjs
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Rental', href: '/rental' }];
@@ -76,6 +77,11 @@ const form = useForm({
 });
 
 
+const page = usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
+
+
 const todayFormatted = computed(() => dayjs().format('YYYY-MM-DD'));
 const isDateDisabled = ref(false);
 
@@ -99,7 +105,13 @@ const formattedDate = (dateString: any, formatString: any) => {
 
 const addRental = (e: Event) => {
 
+    // console.log('props?.rentals?.data', props?.rentals?.data)
+
+    // selectedItem.rentals.filter(dd => dd.status === 'Returned').reduce((sum, item) => sum + Number(item.numOfUsed || 0), 0)
+
 //   if (!isDateDisabled.value && form.startDate) {
+
+console.log('renmtadd', selectedItem)
 
     e.preventDefault();
     console.log('Submitting form...');
@@ -346,7 +358,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
 
                 <Dialog :open="isDialogOpen" @update:open="isDialogOpen = $event">
                     <DialogTrigger as-child>
-                        <Button @click="action = 'add'">Add Rental</Button>
+                        <Button v-if="role !== 'management'" @click="action = 'add'">Add Rental</Button>
                     </DialogTrigger>
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addRental">

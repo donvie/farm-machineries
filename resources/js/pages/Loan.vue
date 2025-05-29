@@ -948,7 +948,7 @@ const attachmentUrls = computed(() =>
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addLoan">
                             <DialogHeader class="space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Billing' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Loan Details' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
      
@@ -1125,8 +1125,9 @@ const attachmentUrls = computed(() =>
                                             <Label :for="'amount-' + index">{{loan.type === 'Loan Fertilizer' ? 'Principal amount fertlizer loan ' : 'Principal amount cash loan'}}</Label>
                                             <!-- <pre>{{loan}}</pre> -->
                                             <!-- <div style="margin-left: 10px" v-if="action === 'edit'" >{{loan.purpose.unitPrice * loan.bags}}</div> -->
-                                            <Input v-if="action === 'edit'" readonly style="background-color: white"  type="text" :id="'amoudadnt-' + index"  :placeholder="loan.purpose.unitPrice * loan.bags" />
-                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.purpose.unitPrice && loan.bags ? loan.amount = loan.purpose.unitPrice * loan.bags : 0" placeholder="Enter Amount" />
+                                            <Input v-if="action === 'edit'" readonly style="background-color: white"  type="text" :id="'amoudadnt-' + index"  :placeholder="(loan.purpose.unitPrice * loan.bags).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')" />
+                                            <Input v-else readonly style="background-color: white" required type="text" :id="'amount-' + index" :value="loan.purpose.unitPrice && loan.bags ? loan.amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,') : 0" placeholder="Enter Amount" />
+                                            <span style="display: none">{{loan.amount = loan.purpose.unitPrice * loan.bags}}</span>
                                         </div>
                                         <div class="mb-2" v-else>
                                             <Label :for="'amount-' + index">{{loan.type === 'Loan Fertilizer' ? 'Principal amount fertlizer loan ' : 'Principal amount cash loan'}}</Label>

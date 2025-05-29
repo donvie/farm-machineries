@@ -140,14 +140,14 @@ console.log('renmtadd', selectedItem)
             alert('The machine is currently unavailable.')
             return
          }
-
+    console.log('12323', props?.maintainances.len)
 
         if (props?.maintainances.filter(dd  => dd.user_id === form.operator_id).map(d => d.maintainance_date).includes(form.startDate)) {
             alert('Date is unavailable. Please select another work start date.');
             return
         }
 
-        if (!props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id).map(d => d.startDate).includes(form.startDate)) {
+        if (!props?.rentals?.data.filter(dd  => dd.operator.id === form.operator_id && dd.status !== 'Returned').map(d => d.startDate).includes(form.startDate)) {
             console.log('form.startDate', form.startDate)
             if (isToday(form.startDate)) {
                 router.patch(route('machinery.update', form.machinery_id), { status: 'In Use' });
@@ -363,7 +363,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addRental">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : 'Billing' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : 'Loan Details' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new rental. </DialogDescription> -->
                             </DialogHeader>
 
@@ -690,7 +690,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                 :isRowClickable="true"
                 :isHasViewBtn="true"
                 :isHasDeleteBtn="role !== 'management' ? true : false"
-                :isHasEditBtn="true"
+                :isHasEditBtn="role !== 'management' ? true : false"
             />
         </div>
     </AppLayout>

@@ -366,7 +366,7 @@ const handleFileUpload = (event: Event) => {
                 @deleteItem="handleDelete"
                 @viewItem="handleView"
                 :isHasFilter="true"
-                :isHasDeleteBtn="role !== 'management' ? true : false"
+                :isHasDeleteBtn="true"
                 :isHasEditBtn="false"
                 :isHasViewBtn="true"
             />

@@ -39,7 +39,7 @@ const calculateLoanCounts = () => {
 
     console.log('props.loansData', props.loansData)
 
-    cashCount.value = props.loansData.filter(dada => dada.status !== 'For Approval').reduce((count, item) => {
+    cashCount.value = props.loansData.filter(dada => dada.status === 'Active').reduce((count, item) => {
     return count + item.loans.filter(loan => loan.type === 'Cash').length;
     }, 0);
 };

@@ -64,7 +64,7 @@ const toggleField = (field: string) => {
     }
 };
 
-const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Check fluid levels', 'Other Parts', 'Start Date', 'Completed Date', 'Remarks'];
+const headers = ['Id', 'Machine Name', 'Brand', 'Serial', 'Status', 'Year acquired', 'Check fluid levels', 'Other Parts', 'Start Date', 'Completed Date', 'Remarks'];
 const form = useForm({
     name: '',
     remarks: '',
@@ -118,7 +118,7 @@ const addTechnician = (e: Event) => {
 onMounted(() => {
     // if (props?.technicians?.data.length === 0) {
 
-    addRoutingChecking()
+    // addRoutingChecking()
     // } 
 });
 
@@ -175,16 +175,19 @@ const getAllMondays = (start: string) => {
 };
 
 const addRoutingChecking = () => {
+    console.log('props?.technicians?.data', props?.technicians?.data)
     // Extract existing combinations of startDate and machineId
     const existing = props?.technicians?.data.map(dd => ({
         startDate: dd.startDate,
         machineId: dd.machinery.id,
     }));
-
-    const mondays = getAllMondays('2025-05-04'); // Generate all Mondays from May 4, 2025
-    console.log('Generated Mondays:', mondays);
-
     props.machineries.forEach((machinery) => {
+        console.log('machinerymachinery', machinery)
+        
+
+        const mondays = getAllMondays(machinery.year_acquired); // Generate all Mondays from May 4, 2025
+        console.log('Generated Mondays:', mondays);
+
         mondays.forEach((monday) => {
             // Check if this machinery already has a record for the given Monday
             const exists = existing.some(entry =>
@@ -254,6 +257,7 @@ const filteredMaintainancesForTable = computed(() => {
     brand: technician.machinery?.brand,
     serial: technician.machinery?.serial,
     status: technician.status,
+    year_acquired: technician.machinery.year_acquired,
     fields: technician.fields.toString(),
     field1: technician.field1.toString(),
     starDate:  technician.startDate,

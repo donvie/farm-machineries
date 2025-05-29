@@ -644,7 +644,7 @@ const filteredMachineriesForTable = computed(() => {
                 @notifySMS="handleNotifySMS"
                 :isHasDeleteBtn="true"
                 :isHasNotifySMSBtn="true"
-                :isHasEditBtn="true"
+                :isHasEditBtn="role !== 'management' ? true : false"
                 :isHasFilter="true"
                 :isHasViewBtn="true"
                 :isHasDownloadQrCodeBtn="true"

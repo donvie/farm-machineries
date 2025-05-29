@@ -689,7 +689,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                 :isHasFilter="true"
                 :isRowClickable="true"
                 :isHasViewBtn="true"
-                :isHasDeleteBtn="true"
+                :isHasDeleteBtn="role !== 'management' ? true : false"
                 :isHasEditBtn="true"
             />
         </div>

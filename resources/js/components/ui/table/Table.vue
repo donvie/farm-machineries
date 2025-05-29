@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import { Link, usePage } from '@inertiajs/vue3';
 
 // pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
@@ -31,6 +32,11 @@ const emit = defineEmits([
   "downloadQrCode",
   "notifySMS",
 ]);
+
+
+const page = usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
 
 const rowsPerPage = props.perPage;
 const currentPage = ref(1);
@@ -240,8 +246,8 @@ const downloadPDF = () => {
             </span>
           </td>
           <td class="px-4 py-2 flex gap-2">
-            <button v-if="props.isHasDownloadQrCodeBtn" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
-            <button v-if="props.isHasDeleteBtn" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
+            <button v-if="props.isHasDownloadQrCodeBtn && role !== 'management'" @click.stop="downloadQrCode(row.id)" class="px-2 py-1 text-white bg-purple-500 rounded">QRcode</button>
+            <button v-if="props.isHasDeleteBtn && role !== 'management'" @click.stop="deleteItem(row.id)" class="px-2 py-1 text-white bg-red-500 rounded">Delete</button>
             <button v-if="props.isHasMarkAsAvailableBtn" @click.stop="markAsAvailableItem(row)" class="px-2 py-1 text-white bg-pink-500 rounded">Mark as Available</button>
             <button v-if="props.isHasEditBtn && row.status !== 'Returned'" @click.stop="editItem(row)" class="px-2 py-1 text-white bg-green-500 rounded">
               <span v-if="title === 'Maintenance'">
@@ -255,8 +261,8 @@ const downloadPDF = () => {
               </span>
             </button>
             <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>
-            <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
-            <button v-if="title === 'Machinery'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
+            <button v-if="props.isHasNotifySMSBtn && row.status === 'Overdue' && role !== 'management'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
+            <button v-if="title === 'Machinery'  && role !== 'management'" @click.stop="notifySMS(row)" class="px-2 py-1 text-white bg-amber-500 rounded">Notify</button>
           </td>
         </tr>
       </tbody>

@@ -361,9 +361,9 @@ const filteredMaintainancesForTable = computed(() => {
                 @markAsAvailableItem="handleMarkAsAvailable"
                 :isHasFilter="true"
                 :isRowClickable="false"
-                :isHasViewBtn="false"
+                :isHasViewBtn="role === 'management' ? true : false"
                 :isHasMarkAsAvailableBtn="false"
-                :isHasEditBtn="true"
+                :isHasEditBtn="role !== 'management' ? true : false"
                 :isHasDeleteBtn="true"
             />
         </div>

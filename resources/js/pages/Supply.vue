@@ -249,11 +249,11 @@ const filteredMaintainancesForTable = computed(() => {
                 @viewItem="handleView"
                 @deleteItem="handleDelete"
                 @markAsAvailableItem="handleMarkAsAvailable"
-                :isHasViewBtn="false"
+                :isHasViewBtn="role === 'management' ? true : false"
                 :isHasMarkAsAvailableBtn="false"
-                :isHasEditBtn="true"
+                :isHasEditBtn="role !== 'management' ? true : false"
                 :isRowClickable="false"
-                :isHasDeleteBtn="true"
+                :isHasDeleteBtn="role !== 'management' ? true : false"
             />
         </div>
     </AppLayout>

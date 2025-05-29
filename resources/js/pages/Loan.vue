@@ -1599,7 +1599,7 @@ const attachmentUrls = computed(() =>
                 @notifySMS="handleNotifySMS"
                 @viewItem="handleView"
                 :isHasViewBtn="true"
-                :isHasDeleteBtn="true"
+                :isHasDeleteBtn="role !== 'management' ? true : false"
                 :isRowClickable="false"
                 :isHasEditBtn="true"
                 :isHasFilter="true"

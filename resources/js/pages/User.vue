@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage} from '@inertiajs/vue3';
 
 import { onMounted, ref, computed} from 'vue';
 
@@ -13,6 +13,10 @@ import { Table } from '@/components/ui/table';
 import { format, parseISO } from 'date-fns';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Member', href: '/user' }];
+
+const page =  usePage();
+const auth = computed(() => page.props.auth);
+const role = computed(() => page.props.auth.user.role);
 
 const isDialogOpen = ref(false);
 const selectedItem = ref({});
@@ -362,7 +366,7 @@ const handleFileUpload = (event: Event) => {
                 @deleteItem="handleDelete"
                 @viewItem="handleView"
                 :isHasFilter="true"
-                :isHasDeleteBtn="true"
+                :isHasDeleteBtn="role !== 'management' ? true : false"
                 :isHasEditBtn="false"
                 :isHasViewBtn="true"
             />

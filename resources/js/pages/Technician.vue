@@ -118,7 +118,7 @@ const addTechnician = (e: Event) => {
 onMounted(() => {
     // if (props?.technicians?.data.length === 0) {
 
-    // addRoutingChecking()
+    addRoutingChecking()
     // } 
 });
 

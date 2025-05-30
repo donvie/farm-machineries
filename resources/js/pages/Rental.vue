@@ -363,7 +363,7 @@ console.log('props?.rentals?.data', props?.rentals?.data)
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addRental">
                             <DialogHeader class="mb-3 space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : 'Loan Details' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Rental' : role === 'admin' ? 'Billing' : 'Loan Details' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new rental. </DialogDescription> -->
                             </DialogHeader>
 

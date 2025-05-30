@@ -258,7 +258,7 @@ const downloadPDF = () => {
               </span>
               <span v-else>
                 <span v-if="title === 'Loan'">
-                  Loan Details
+                  {{role === 'admin' ? 'Billing' : 'Loan Details'}}
                 </span>
                 <span v-else-if="title === 'Rental'">
                   Billing
@@ -266,7 +266,6 @@ const downloadPDF = () => {
                 <span v-else>
                   Edit
                 </span>
-                <!-- {{title === 'Loan' || title === 'Rental' ? 'Loan Details' : 'Edit' }} -->
               </span>
             </button>
             <button v-if="props.isHasViewBtn" @click.stop="ViewItem(row)" class="px-2 py-1 text-white bg-blue-500 rounded">View</button>

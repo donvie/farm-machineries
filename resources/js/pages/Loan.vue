@@ -948,7 +948,7 @@ const attachmentUrls = computed(() =>
                     <DialogContent class="max-h-[80vh] overflow-y-auto">
                         <form @submit.prevent="addLoan">
                             <DialogHeader class="space-y-3">
-                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : 'Loan Details' }}</DialogTitle>
+                                <DialogTitle>{{ action === 'add' ? 'Add New Loan' : role === 'admin' ? 'Billing' : 'Loan Details' }}</DialogTitle>
                                 <!-- <DialogDescription> Fill in the details below to add a new loan. </DialogDescription> -->
                             </DialogHeader>
      
